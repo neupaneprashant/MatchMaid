@@ -1,9 +1,9 @@
 # software-development
 This is the repository for the development of the project for Software Development.
 
-Members
-  Prashant Neupane
-  Prasiddia Neupane
-  Ryan Anderson
-  Javen Wilson
-  Preston Parker
+Members<br>
+  Prashant Neupane<br>
+  Prasiddia Neupane<br>
+  Ryan Anderson<br>
+  Javen Wilson<br>
+  Preston Parker<br>
