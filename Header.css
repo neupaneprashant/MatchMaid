@@ -1,67 +1,97 @@
-:root{
+:root {
+  --color: #213547;
+  --background-color: #ffffff;
+  --color-hover: #747bff;
+  --background-color-hover: #f9f9f9;
 
-    --color: #213547;
-    --background-color: #ffffff;
-    --color-hover: #747bff;
-    --background-color-hover: #f9f9f9;
-    --color-button: #1a1a1a;
-    --color-button-hover: #646cff;
-    --color-button-border: transparent;
-    --color-button-border-hover: #646cff;
-    --color-button-focus: #646cff;
-    --color-button-focus-visible: #646cff;
-    --color-button-outline: -webkit-focus-ring-color;
-    --color-button-outline-size: 4px;
-    --color-button-outline-style: auto;
-    --color-button-outline-color: -webkit-focus-ring-color
+  --button-bg: #04AA6D;
+  --button-hover-opacity: 0.8;
+  --cancel-btn-bg: #f44336;
 
-    /*Login layout and Design*/
-input[type = text,type =password]{
-    border-radius: 8px;
-    border: 1px solid transparent;
-    padding: 0.6em 1.2em;
-    font-size: 1em;
-    font-weight: 500;
-    font-family: inherit;
-    background-color: #1a1a1a;
-    cursor: pointer;
-    transition: border-color 0.25s;
+  --input-bg: #1a1a1a;
+  --input-border: transparent;
+  --input-border-hover: #646cff;
+  --input-outline: 4px auto -webkit-focus-ring-color;
+}
 
+/* ===== Input Styling ===== */
+input[type="text"],
+input[type="password"] {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid var(--input-border);
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: var(--input-bg);
+  color: white;
+  transition: border-color 0.25s;
 }
-input[type = text,type =password]:hover{
-    border-color: #646cff;
+
+input[type="text"]:hover,
+input[type="password"]:hover {
+  border-color: var(--input-border-hover);
 }
-input[type = text,type =password]:focus, input[type = text,type =password]:focus-visible{
-    outline: 4px auto -webkit-focus-ring-color;
+
+input[type="text"]:focus,
+input[type="password"]:focus {
+  outline: var(--input-outline);
 }
-/*Buttons color*/
+
+/* ===== Buttons ===== */
 button {
-    background-color: #04AA6D;
-    color: white;
-    padding: 14px 20px;
-    margin: 8px 0;
-    border: none;
-    cursor: pointer;
-    width: 100%;
-  }
-  /* Hover effect */
-  button:hover {
-    opacity: 0.8;
-  }
-/*Cancel button color*/
-  .cancelbtn {
-    width: auto;
-    padding: 10px 18px;
-    background-color: #f44336;
-  }
-  /*container padding*/
-  .container {
-    padding: 16px;
-  }
-  /*forgot Password*/
-    span.psw {
-        float: right;
-        padding-top: 16px;
-    }
+  background-color: var(--button-bg);
+  color: white;
+  padding: 14px 20px;
+  margin: 8px 0;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  border-radius: 8px;
+  font-weight: bold;
+  transition: opacity 0.2s ease;
+}
 
+button:hover {
+  opacity: var(--button-hover-opacity);
+}
+
+/* Cancel Button */
+.cancelbtn {
+  width: auto;
+  padding: 10px 18px;
+  background-color: var(--cancel-btn-bg);
+  border-radius: 8px;
+}
+
+/* ===== Layout Utilities ===== */
+.container {
+  padding: 16px;
+  background-color: var(--background-color);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+span.psw {
+  float: right;
+  padding-top: 16px;
+  font-size: 0.9em;
+}
+
+/* Responsive */
+@media screen and (max-width: 480px) {
+  .cancelbtn {
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  span.psw {
+    float: none;
+    display: block;
+    text-align: center;
+    padding-top: 8px;
+  }
 }

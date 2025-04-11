@@ -1,0 +1,59 @@
+.card {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    height: 60vh;
+    border-radius: 20px;
+    background-position: center;
+    background-size: cover;
+    box-shadow: 0px 18px 53px 0px rgba(0, 0, 0, 0.3);
+    display: flex;
+    justify-content: flex-end;
+    flex-direction: column;
+    overflow: hidden;
+    margin: 0 auto;
+}
+
+/* Text overlay at the bottom of the card */
+.card > h3 {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    margin: 0;
+    font-size: 1.5rem;
+    color: white;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+/* Optional: For a bio overlay section */
+.card__text {
+    background: rgba(0, 0, 0, 0.45);
+    color: white;
+    padding: 20px;
+    backdrop-filter: blur(4px);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Container for all swipeable cards */
+.tinderCards__cardContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 5vh;
+    position: relative;
+    height: 60vh;
+    width: 100%;
+}
+
+/* Individual swipe logic */
+.swipe {
+    position: absolute;
+    width: 100%;
+    max-width: 600px;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.3s ease;
+}
