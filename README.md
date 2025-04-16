@@ -5,7 +5,7 @@
 ## 🔥 Features
 
 - 💁‍♀️ Swipeable card interface to browse maid profiles
-- 🔐 Firebase-powered authentication with Email/Password and Google login
+- 🔐 Firebase-powered authentication with Google login
 - 🌍 Multilingual landing page (English + Spanish toggle)
 - 👤 Interactive profile panel for maids to update availability, pay, work range, and languages
 - ✍️ Custom scheduling and service preferences (e.g., pets, kitchen, etc.)
