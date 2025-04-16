@@ -2,6 +2,7 @@
 
 **MatchMaid** is a modern web application that connects clients with domestic helpers ("maids") in a Tinder-style swiping interface. Users can create profiles, review availability, swipe through local maid profiles, and manage their own schedule and work preferences in a sleek, responsive interface.
 
+
 ## 🔥 Features
 
 - 💁‍♀️ Swipeable card interface to browse maid profiles
@@ -97,7 +98,10 @@ export const db = getFirestore(app);
 
  Map view integration for range filtering  
 
- #####################################################################################################################
+ #####################################################################
+
 Hours Spreadsheet -- https://docs.google.com/spreadsheets/d/192Fyi-hntl_SO1HcgbuXpR2V1Ad12kVvCKc3PaTxvO4/edit?gid=0#gid=0
-###################################################################################################################################
+
+#######################################################################
+
 -- "If you find a bug, want to add a feature, or improve the code — feel free to contribute!"
