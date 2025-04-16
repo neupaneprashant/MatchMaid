@@ -92,7 +92,7 @@ export const db = getFirestore(app);
 
  Notifications for booking requests
 
- Map view integration for range filtering
+ Map view integration for range filtering  
 
  #####################################################################################################################
 Hours Spreadsheet -- https://docs.google.com/spreadsheets/d/192Fyi-hntl_SO1HcgbuXpR2V1Ad12kVvCKc3PaTxvO4/edit?gid=0#gid=0
