@@ -94,5 +94,7 @@ export const db = getFirestore(app);
 
  Map view integration for range filtering
 
+ #####################################################################################################################
+Hours Spreadsheet -- https://docs.google.com/spreadsheets/d/192Fyi-hntl_SO1HcgbuXpR2V1Ad12kVvCKc3PaTxvO4/edit?gid=0#gid=0
 ###################################################################################################################################
 -- "If you find a bug, want to add a feature, or improve the code — feel free to contribute!"
