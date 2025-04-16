@@ -102,7 +102,7 @@ export const db = getFirestore(app);
 
  #####################################################################
 
-Hours Spreadsheet -- https://docs.google.com/spreadsheets/d/192Fyi-hntl_SO1HcgbuXpR2V1Ad12kVvCKc3PaTxvO4/edit?gid=0#gid=0
+Hours Spreadsheet -- https://docs.google.com/spreadsheets/d/192Fyi-hntl_SO1HcgbuXpR2V1Ad12kVvCKc3PaTxvO4/edit?gid=0#gid=0](https://latech365-my.sharepoint.com/:x:/r/personal/pne007_office_latech_edu/Documents/Sprint%20Planning%20Spreadsheet.xlsx?d=w90c52e6cd5e04d01b0ad3972865a2430&csf=1&web=1&e=t25kfo)
 
 #######################################################################
 
