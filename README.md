@@ -85,6 +85,8 @@ export const db = getFirestore(app);
 ###################################################################################################################################
 
 🧪 To-Do / Future Improvements
+
+
  Maid review and rating system
 
  Search/filter maids by location or price
