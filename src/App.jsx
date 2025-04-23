@@ -7,6 +7,7 @@ import './signup.css';
 import './landing.css';
 import './Tinder_Cards.css';
 import ReviewSection from './ReviewSection'; 
+import React from 'react';
 
 
 function App() {
