@@ -244,6 +244,7 @@ import { getAuth, signOut } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from './firebase';
 import { useNavigate } from 'react-router-dom'; // ✅ NEW
+import React from 'react';
 
 function ProfilePanel() {
   const auth = getAuth();
