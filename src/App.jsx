@@ -20,7 +20,6 @@ function App() {
         <Route path="/home" element={<TinderCards />} />
         <Route path="/tinder-shuffle/review" element={<ReviewSection />} />
         <Route path="/chat" element={<ChatPage />} />
-        
       </Routes>
     </Router>
   );
