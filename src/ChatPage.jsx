@@ -1,19 +1,29 @@
 import React, { useState } from "react";
 import Chat from "./Chat";
 import "./ChatPage.css";
+import { useNavigate } from 'react-router-dom';
+import { db } from "./firebase";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  query,
+  where,
+  serverTimestamp,
+} from "firebase/firestore";
 
 
 function ChatPage() {
   const [selectedUser, setSelectedUser] = useState(null);
-  const [messageInput, setMessageInput] = useState(""); // New input text
-
+  const [messageInput, setMessageInput] = useState(""); 
+  const navigate = useNavigate();
   const [users, setUsers] = useState([
     {
       id: 1,
-      name: "Ana Malbasa",
+      name: "Ana Malbsa",
       message: "See you later!",
       timestamp: "5 min ago",
-      profilePic: "https://i.pravatar.cc/150?img=32",
+      profilePic: "./test.jpg",
       conversation: ["Hi Ana!", "See you later!", "Bye!"]
     },
     {
@@ -98,6 +108,7 @@ function ChatPage() {
           >
             Send
           </button>
+          <button onClick={() => navigate('/home')} className="mr-3"></button>
         </div>
       </>
     ) : (
