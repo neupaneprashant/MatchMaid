@@ -4,8 +4,10 @@ import { getAuth } from 'firebase/auth'
 import { doc, setDoc, getDoc } from 'firebase/firestore'
 import { db } from './firebase'
 import './ProfilePanel.css'
+import { deleteUser } from "firebase/auth";
+import { deleteDoc } from "firebase/firestore";
 
-function MaidPage() {
+function ProfilePage() {
   const auth = getAuth()
   const user = auth.currentUser
 
@@ -49,6 +51,29 @@ function MaidPage() {
     })
     alert("Profile saved!")
   }
+
+  const deleteAccount = async () => {
+    if (!user) return alert("No user signed in.");
+  
+    if (!window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
+      return;
+    }
+  
+    try {
+      // Delete user profile document from Firestore
+      await deleteDoc(doc(db, "profiles", user.uid));
+  
+      // Delete the user from Firebase Authentication
+      await deleteUser(user);
+  
+      alert("Account deleted successfully.");
+      window.location.href = "/"; // Redirect to signup page or homepage
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      alert(error.message || "Failed to delete account.");
+    }
+  };
+  
 
   const handlePhotoUpload = (e) => {
     const files = Array.from(e.target.files)
@@ -153,23 +178,21 @@ function MaidPage() {
     fontWeight: 'bold',
     cursor: 'pointer',
     padding: 0,
-    textAlign: 'center',      
-    lineHeight: '20px',        
+    textAlign: 'center',      // Center text horizontally
+    lineHeight: '20px',        // Center text vertically by matching line height to height
   }}
->
+  >
   ×
 </button>
-
-
 </div>
-
-        ))}
+))}
       </div>
 
       <br /><br />
       <button onClick={saveProfile}>Save Profile</button>
+      <br /><br />
+      <button onClick={deleteAccount} style={{ backgroundColor: 'red', color: 'white' }}>Delete Account</button>
     </div>
   )
 }
-
-export default <MaidPage></MaidPage>
+export default ProfilePage
