@@ -5,6 +5,8 @@ import Signup from './Signup';
 import TinderCards from './Tinder_Cards';
 import ChatPage from './ChatPage'; 
 import ReviewSection from './ReviewSection';
+import MaidPage from './MaidPage';
+
 
 import './App.css';
 import './signup.css';
@@ -21,6 +23,7 @@ function App() {
         <Route path="/home" element={<TinderCards />} />
         <Route path="/tinder-shuffle/review" element={<ReviewSection />} />
         <Route path="/chat" element={<ChatPage />} /> 
+        <Route path="/maidpage" element={<MaidPage />} />
       </Routes>
     </Router>
   );
