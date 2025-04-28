@@ -1,37 +1,77 @@
 .chatPage {
   display: flex;
-  flex-direction: column;
   height: 100vh;
-  background-color: #fafafa;
+  width: 100vw; /* ⬅️ Add this line */
+  color: white;
+  background-color: #1a1a1a;
+  overflow: hidden; /* optional: removes unwanted scrollbars */
+  margin: 0; /* optional: removes small body margin */
+  padding: 0;
 }
 
-.chatPage__header {
+
+/* Sidebar (Left) */
+.chatPage__sidebar {
+  width: 30%;
+  border-right: 1px solid #333;
+  padding: 10px;
+  overflow-y: auto;
+  background-color: #262626;
+}
+
+.chatPage__sidebar h2 {
+  margin-bottom: 20px;
+}
+
+/* Main Chat Window (Right) */
+.chatPage__chatWindow {
+  flex: 1;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   padding: 20px;
-  background-color: #ff5a5f;
-  color: white;
-  position: sticky;
-  top: 0;
-  z-index: 10;
 }
 
-.backButton {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 24px;
-  cursor: pointer;
-  margin-right: 20px;
-}
-
-.chatPage__title {
-  font-size: 24px;
-  font-weight: bold;
-}
-
-.chatPage__chats {
+/* Chat messages list */
+.chatPage__messages {
   flex: 1;
   overflow-y: auto;
+}
+
+.chatPage__message {
+  background-color: #333;
   padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  max-width: 70%;
+  word-wrap: break-word;
+}
+
+/* Input section */
+.chatPage__inputContainer {
+  display: flex;
+  margin-top: 10px;
+}
+
+.chatPage__input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #555;
+  border-radius: 5px;
+  margin-right: 8px;
+  background-color: #fff8f8;
+  color: white;
+}
+
+.chatPage__sendButton {
+  padding: 10px 20px;
+  border-radius: 5px;
+  background-color: #ff5a5f;
+  border: none;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.chatPage__sendButton:hover {
+  background-color: #e14b4f;
 }
