@@ -3,7 +3,7 @@ import React from 'react';
 import LandingPage from './landing';
 import Signup from './Signup';
 import TinderCards from './Tinder_Cards';
-import ChatPage from './chatPage'; 
+import ChatPage from './Chat'; 
 import ReviewSection from './ReviewSection'; 
 import './App.css';
 import './signup.css';
