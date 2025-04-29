@@ -5,7 +5,7 @@ import { getFirestore } from "firebase/firestore";
 // import { getAnalytics } from "firebase/analytics"; // optional
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBEt1x4HJKJXLuoRj0SGDVfj6evFeWiV3M",
+  apiKey: "API-KEY",
   authDomain: "maid-match-7e3c8.firebaseapp.com",
   projectId: "maid-match-7e3c8",
   storageBucket: "maid-match-7e3c8.appspot.com",
