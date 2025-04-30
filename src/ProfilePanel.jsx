@@ -3,21 +3,28 @@ import './ProfilePanel.css';
 import { FaUserCircle } from 'react-icons/fa';
 import { getAuth, signOut } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { db } from './firebase';
-import { useNavigate } from 'react-router-dom'; // ✅ NEW
+import { db, messaging } from './firebase';
+import { getToken } from 'firebase/messaging';
+import { useNavigate } from 'react-router-dom';
+import MaidRatingAnalytics from './MaidRatingAnalytics';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import LoadingOverlay from './LoadingOverlay';
 import React from 'react';
 
 function ProfilePanel() {
   const auth = getAuth();
-  const navigate = useNavigate(); // ✅ NEW
+  const navigate = useNavigate();
 
   const [user, setUser] = useState(null);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const [name, setName] = useState('');
   const [pay, setPay] = useState(20);
   const [range, setRange] = useState(50);
   const [languages, setLanguages] = useState('');
+  const [showAnalytics, setShowAnalytics] = useState(false);
 
   const [specs, setSpecs] = useState({
     pets: false,
@@ -39,8 +46,22 @@ function ProfilePanel() {
   });
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((firebaseUser) => {
+    const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
       setUser(firebaseUser);
+
+      if (firebaseUser) {
+        try {
+          const token = await getToken(messaging, {
+            vapidKey: 'BOQSMeBPVm8y6nubk3l76nYInIX162YY5jCto9PHALX6vygSIPHLP8riMvbm0jj9eGXnajA4dN-DIvmTfgmbCWc'
+          });
+          await setDoc(doc(db, 'profiles', firebaseUser.uid), {
+            fcmToken: token
+          }, { merge: true });
+
+        } catch (error) {
+          console.error('❌ Error getting FCM token:', error);
+        }
+      }
     });
 
     return () => unsubscribe();
@@ -49,17 +70,24 @@ function ProfilePanel() {
   useEffect(() => {
     const loadProfile = async () => {
       if (!user) return;
-
-      const profileRef = doc(db, 'profiles', user.uid);
-      const snap = await getDoc(profileRef);
-      if (snap.exists()) {
-        const data = snap.data();
-        setName(data.name || '');
-        setPay(data.pay || 20);
-        setRange(data.range || 50);
-        setSpecs(data.specs || specs);
-        setSchedule(data.schedule || schedule);
-        setLanguages(data.languages || '');
+      setLoading(true);
+      try {
+        const profileRef = doc(db, 'profiles', user.uid);
+        const snap = await getDoc(profileRef);
+        if (snap.exists()) {
+          const data = snap.data();
+          setName(data.name || '');
+          setPay(data.pay || 20);
+          setRange(data.range || 50);
+          setSpecs(data.specs || specs);
+          setSchedule(data.schedule || schedule);
+          setLanguages(data.languages || '');
+        }
+      } catch (err) {
+        toast.error("Failed to load profile.");
+        console.error(err);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -70,12 +98,11 @@ function ProfilePanel() {
 
   const saveProfile = async () => {
     if (!user) {
-      alert("You're not logged in!");
+      toast.error("You're not logged in!");
       return;
     }
 
     try {
-      console.log("Saving profile for user:", user.uid);
       await setDoc(doc(db, 'profiles', user.uid), {
         name,
         pay,
@@ -83,36 +110,35 @@ function ProfilePanel() {
         specs,
         schedule,
         languages,
-      });
-      alert('Profile saved!');
+      }, { merge: true });
+      toast.success("✅ Profile saved!");
     } catch (err) {
       console.error('Error saving profile:', err);
-      alert(`Failed to save profile: ${err.message}`);
+      toast.error("❌ Failed to save profile.");
     }
   };
 
   const checkProfileInConsole = async () => {
-    if (!user) return alert("User not logged in");
+    if (!user) return toast.info("User not logged in");
     try {
       const snap = await getDoc(doc(db, "profiles", user.uid));
       if (snap.exists()) {
-        console.log("✅ Profile data loaded from Firestore:", snap.data());
+        console.log("✅ Profile data:", snap.data());
       } else {
-        console.log("⚠️ No profile found for this user.");
+        console.log("⚠️ No profile found.");
       }
     } catch (err) {
       console.error("Error checking profile:", err);
     }
   };
 
-  // ✅ Updated logout to route to landing page
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      navigate('/'); // Redirect to landing page
+      navigate('/');
     } catch (err) {
       console.error("Logout error:", err);
-      alert("Failed to log out.");
+      toast.error("Failed to log out.");
     }
   };
 
@@ -149,6 +175,8 @@ function ProfilePanel() {
         }}
         title={profileOpen ? 'Close Profile' : 'Open Profile'}
       />
+
+      {loading && <LoadingOverlay />}
 
       <div className={`profile-panel ${profileOpen ? 'open' : ''}`}>
         <h2>Your Maid Profile</h2>
@@ -225,7 +253,29 @@ function ProfilePanel() {
 
         <br /><br />
         <button onClick={saveProfile}>Save Profile</button>
-        <button style={{ marginLeft: '1rem' }} onClick={checkProfileInConsole}>🔍 Check Profile in Console</button>
+        <button style={{ marginLeft: '1rem' }} onClick={checkProfileInConsole}>
+          🔍 Check Profile in Console
+        </button>
+
+        <br /><br />
+        <button
+          onClick={() => setShowAnalytics(!showAnalytics)}
+          style={{
+            backgroundColor: showAnalytics ? '#aaa' : '#04AA6D',
+            color: 'white',
+            padding: '0.5rem 1rem',
+            borderRadius: '0.25rem',
+            marginBottom: '1rem',
+            cursor: 'pointer'
+          }}
+        >
+          {showAnalytics ? "Hide Rating Analytics" : "Show Rating Analytics"}
+        </button>
+
+        {showAnalytics && user && (
+          <MaidRatingAnalytics maidId={user.uid} />
+        )}
+
         <br /><br />
         <button
           onClick={handleLogout}
