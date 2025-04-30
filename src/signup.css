@@ -148,3 +148,55 @@ a:hover {
 .hidden {
     display: none;
 }
+.role-switch {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+    gap: 1rem;
+  }
+  
+  .role-button {
+    background-color: white;
+    color: #333;
+    border: 2px solid #ccc;
+    border-radius: 9999px;
+    padding: 0.5rem 1.5rem;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .role-button.active {
+    background-color: #04AA6D;
+    color: white;
+    border-color: #04AA6D;
+  }
+  
+  .role-button:hover {
+    background-color: #e0e0e0;
+  }
+  
+  .loading-spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+  }
+  
+  .spinner {
+    border: 6px solid rgba(0, 0, 0, 0.1);
+    border-left-color: #04AA6D;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  

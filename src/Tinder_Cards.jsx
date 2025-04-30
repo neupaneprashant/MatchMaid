@@ -3,6 +3,7 @@ import { motion, useMotionValue, useTransform } from "framer-motion";
 import ProfilePanel from "./ProfilePanel"; 
 import { FaUserCircle } from "react-icons/fa"; 
 import "./Tinder_Cards.css";
+import PayPalButton from "./Pay_Pal";
 
 const cardData = [
   {
@@ -60,8 +61,12 @@ function TinderCards() {
   const [profileOpen, setProfileOpen] = useState(false); // Panel toggle
 
   return (
-    <div className="tinderCards__cardContainer">
-
+    <>
+      {/* PayPal Button */}
+      <div className="top-right-button">
+        <PayPalButton />
+      </div>
+    
       {/* Profile icon button */}
       <FaUserCircle
         onClick={() => setProfileOpen(!profileOpen)}
@@ -78,14 +83,19 @@ function TinderCards() {
       />
 
       {/* Profile editor panel */}
-      <ProfilePanel open={profileOpen} />
+      <ProfilePanel open={profileOpen} setOpen={setProfileOpen} />
 
-      {/* Swipable cards */}
-      {cards.map((card) => (
-        <Card key={card.id} {...card} setCards={setCards} cards={cards} />
-      ))}
-    </div>
+      {/* WRAP CONTENT IN MAIN-CONTENT */}
+      <div className={`main-content ${profileOpen ? "shifted" : ""}`}>
+        <div className="tinderCards__cardContainer">
+          {cards.map((card) => (
+            <Card key={card.id} {...card} setCards={setCards} cards={cards} />
+          ))}
+        </div>
+      </div>
+    </>
   );
 }
+
 
 export default TinderCards;

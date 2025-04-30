@@ -7,23 +7,15 @@ import {
   getDocs,
   query,
   where,
-  updateDoc,
-  doc,
   serverTimestamp,
-  getDoc,
 } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
 import { FaStar } from "react-icons/fa";
 
 const ReviewSection = () => {
   const location = useLocation();
-  const auth = getAuth();
-  const user = auth.currentUser;
-
-  const maidId = location.state?.maidId;
-  const maidName = location.state?.maidName || "this maid";
-  const userId = user?.uid || "user456";
-  const userName = user?.displayName || "Test User";
+  const maidId = location.state?.maidId || "maid123";
+  const userId = "user456"; // TODO: replace with auth.currentUser.uid
+  const userName = "Test User"; // TODO: replace with auth.currentUser.displayName
 
   const [reviews, setReviews] = useState([]);
   const [newReview, setNewReview] = useState({ rating: 0, text: "" });
@@ -32,7 +24,7 @@ const ReviewSection = () => {
 
   useEffect(() => {
     fetchReviews();
-  }, [maidId]);
+  }, []);
 
   const fetchReviews = async () => {
     try {
@@ -41,7 +33,6 @@ const ReviewSection = () => {
       const fetched = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
-        replyDraft: doc.data().reply || "",
       }));
       setReviews(fetched);
     } catch (error) {
@@ -65,38 +56,7 @@ const ReviewSection = () => {
         timestamp: serverTimestamp(),
       });
 
-      alert("✅ Review submitted!");
-
-      const maidProfileRef = doc(db, "profiles", maidId);
-      const maidProfileSnap = await getDoc(maidProfileRef);
-
-      if (maidProfileSnap.exists()) {
-        const maidData = maidProfileSnap.data();
-        const fcmToken = maidData.fcmToken;
-
-        if (fcmToken) {
-          await fetch("https://us-central1-maid-match-7e3c8.cloudfunctions.net/sendNotification", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              token: fcmToken,
-              title: "New Review Received!",
-              body: `${userName} left you a review!`,
-              icon: "https://maid-match-7e3c8.web.app/maid-icon.png",
-              badge: 1,
-              vibrate: [100, 200, 300],
-              click_action: "https://maid-match-7e3c8.web.app/tinder-shuffle/review",
-            }),
-          });
-
-          console.log(" Notification sent to Maid!");
-        } else {
-          console.warn("⚠️ Maid does not have an FCM token.");
-        }
-      }
-
+      alert("Review submitted!");
       setNewReview({ rating: 0, text: "" });
       setEditingId(null);
       fetchReviews();
@@ -131,87 +91,36 @@ const ReviewSection = () => {
 
   return (
     <div style={styles.container}>
-      <h2 style={styles.heading}>Leave a review for {maidName}</h2>
-
-      {reviews.map((rev) => {
-        const isMaid = rev.maidId === user?.uid;
-        const isReviewer = rev.userId === userId;
-
-        return (
-          <div key={rev.id} style={styles.reviewCard}>
-            <div style={styles.starRow}>
-              {[...Array(5)].map((_, index) => (
-                <FaStar
-                  key={index}
-                  size={20}
-                  color={index < rev.rating ? "#ff6363" : "#ddd"}
-                />
-              ))}
-            </div>
-
-            <p>{rev.text}</p>
-
-            {rev.reply && (
-              <div style={{ marginTop: "0.5rem", fontStyle: "italic", color: "#00bfa5" }}>
-                <strong>Reply from Maid:</strong> {rev.reply}
-              </div>
-            )}
-
-            {isMaid && (
-              <div style={{ marginTop: "0.5rem" }}>
-                <input
-                  type="text"
-                  placeholder="Reply to this review..."
-                  value={rev.replyDraft}
-                  onChange={(e) => {
-                    const updated = reviews.map((r) =>
-                      r.id === rev.id ? { ...r, replyDraft: e.target.value } : r
-                    );
-                    setReviews(updated);
-                  }}
-                  style={{ padding: "0.4rem", width: "80%" }}
-                />
-                <button
-                  onClick={async () => {
-                    const replyText = reviews.find((r) => r.id === rev.id).replyDraft;
-                    await updateDoc(doc(db, "reviews", rev.id), { reply: replyText });
-                    fetchReviews();
-                    setTimeout(() => {
-                      alert("✅ Reply saved successfully!");
-                    }, 300);
-                  }}
-                  style={{
-                    marginLeft: "0.5rem",
-                    padding: "0.4rem 1rem",
-                    backgroundColor: "#04AA6D",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "5px",
-                  }}
-                >
-                  Save
-                </button>
-              </div>
-            )}
-
-            {isReviewer && (
-              <div style={styles.actionRow}>
-                <button style={styles.edit} onClick={() => handleEdit(rev)}>
-                  Edit
-                </button>
-                <button style={styles.report} onClick={() => handleReport(rev.id)}>
-                  Report
-                </button>
-              </div>
-            )}
+      <h2 style={styles.heading}>Rate Your Experience </h2>
+      {reviews.map((rev) => (
+        <div key={rev.id} style={styles.reviewCard}>
+          <div style={styles.starRow}>
+            {[...Array(5)].map((_, index) => (
+              <FaStar
+                key={index}
+                size={20}
+                color={index < rev.rating ? "#ff6363" : "#ddd"}
+              />
+            ))}
           </div>
-        );
-      })}
+          <p>{rev.text}</p>
+          <div style={styles.actionRow}>
+            {rev.userId === userId && (
+              <button style={styles.edit} onClick={() => handleEdit(rev)}>
+                Edit
+              </button>
+            )}
+            <button style={styles.report} onClick={() => handleReport(rev.id)}>
+              Report
+            </button>
+          </div>
+        </div>
+      ))}
 
       <div style={styles.formCard}>
-        <h3 style={{ marginBottom: 8, color: editingId ? "#000" : "#42f5e9" }}>
-          {editingId ? "Edit Your Review" : "Add a Review"}
-        </h3>
+      <h3 style={{ marginBottom: 8, color: editingId ? "#000" : "#42f5e9" }}>
+        {editingId ? "Edit Your Review" : "Add a Review"}
+      </h3>
 
         <div style={styles.starRow}>
           {[...Array(5)].map((_, i) => {
@@ -241,7 +150,6 @@ const ReviewSection = () => {
             );
           })}
         </div>
-
         <textarea
           placeholder="Say something about your experience..."
           style={styles.textarea}
@@ -267,7 +175,7 @@ const styles = {
     backgroundColor: "#f9fbfd",
     minHeight: "100vh",
     position: "relative",
-    zIndex: 20,
+    zIndex: 20, // ensure it's above other content
   },
   heading: {
     fontSize: "2rem",
@@ -283,7 +191,6 @@ const styles = {
     marginBottom: 16,
     boxShadow: "0 4px 10px rgba(0,0,0,0.06)",
     borderLeft: "4px solid #007bff",
-    color: "white",
   },
   formCard: {
     background: "#eaf6ff",
@@ -332,4 +239,3 @@ const styles = {
 };
 
 export default ReviewSection;
-
