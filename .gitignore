@@ -1,0 +1,4 @@
+.DS_Store
+src/.DS_Store
+src/locales/.DS_Store
+src/firebase.js
