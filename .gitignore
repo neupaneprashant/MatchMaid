@@ -2,3 +2,4 @@
 src/.DS_Store
 src/locales/.DS_Store
 src/firebase.js
+node_modules
