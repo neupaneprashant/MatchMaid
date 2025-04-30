@@ -91,7 +91,7 @@ const ReviewSection = () => {
             }),
           });
 
-          console.log("✅ Notification sent to Maid!");
+          console.log(" Notification sent to Maid!");
         } else {
           console.warn("⚠️ Maid does not have an FCM token.");
         }
