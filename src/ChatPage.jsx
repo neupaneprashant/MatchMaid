@@ -109,7 +109,8 @@ function ChatPage({ currentUser }) {
     <div className="chatPage">
       {/* Sidebar */}
       <div className="chatPage__sidebar">
-        <h2>Chats <button onClick={() => navigate('/home')} className="chatPage__backButton"> ⬅ Back to home</button></h2>
+        <h2> <button onClick={() => navigate('/')} className="chatPage__logoutButton"> Logout </button></h2>
+        <h2> <button onClick={() => navigate('/home')} className="chatPage__backButton"> ⬅ Back to home</button></h2>
         {users.map((user) => (
           <div key={user.id} onClick={() => handleSelectUser(user)}>
             <Chat
