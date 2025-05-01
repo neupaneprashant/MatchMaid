@@ -26,7 +26,7 @@ export default function LandingPage() {
       <div className="landing-wrapper">
         <nav className="navbar">
           <div className="logo" onClick={() => navigate('/')}>
-            <img src="/MATCHMAID.png" alt="MatchMaid Logo" className="logo-img" />
+            <img src="public/MATCHMAID.png" alt="MatchMaid Logo" className="logo-img" />
           </div>
           <ul className="nav-links">
             <li>{t('products')}</li>
