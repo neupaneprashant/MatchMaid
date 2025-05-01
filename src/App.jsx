@@ -10,6 +10,7 @@ import './Tinder_Cards.css';
 import ReviewSection from './ReviewSection'; 
 import MaidPortal from './MaidPortal';
 import React from 'react';
+import ChatPage from './ChatPage';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
           <Route path="/home" element={<TinderCards />} />
           <Route path="/tinder-shuffle/review" element={<ReviewSection />} />
           <Route path="/maid-portal" element={<MaidPortal />} />
+          <Route path="/chat" element={<ChatPage />} />
         </Routes>
       </Router>
     </PayPalScriptProvider>
