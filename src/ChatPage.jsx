@@ -2,6 +2,8 @@ import React, { useEffect, useState, useRef } from "react";
 import Chat from "./Chat";
 import "./ChatPage.css";
 import { useNavigate } from 'react-router-dom';
+import { signOut } from "firebase/auth";
+import { auth } from "./firebase"; 
 import { db } from "./firebase";
 import {
   collection,
@@ -24,7 +26,7 @@ function ChatPage({ currentUser }) {
   const [chatId, setChatId] = useState(null);
   const navigate = useNavigate();
   const messagesEndRef = useRef(null);
-
+// logic for creating a chat when a user swipes right: Do not delete
   // useEffect(() => {
   //   const fetchSwipedUsers = async () => {
   //     const q = query(collection(db, "swipes"), where("swiper", "==", currentUser.uid));
@@ -50,8 +52,8 @@ function ChatPage({ currentUser }) {
     ]);
   }, []);
   
-  
 
+  
   useEffect(() => {
     if (chatId) {
       const q = query(collection(db, "chats", chatId, "messages"), orderBy("createdAt"));
@@ -88,6 +90,7 @@ function ChatPage({ currentUser }) {
     setMessages([]);
     await getOrCreateChat(user);
   };
+  
 
   const handleSendMessage = async () => {
     if (!messageInput.trim() || !selectedUser || !chatId) return;
@@ -99,6 +102,15 @@ function ChatPage({ currentUser }) {
     setMessageInput("");
   };
 
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+      navigate('/');
+    } catch (error) {
+      alert("Error signing out: " + error.message);
+    }
+  };  
+
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -109,7 +121,7 @@ function ChatPage({ currentUser }) {
     <div className="chatPage">
       {/* Sidebar */}
       <div className="chatPage__sidebar">
-        <h2> <button onClick={() => navigate('/')} className="chatPage__logoutButton"> Logout </button></h2>
+        <h2> <button onClick={() => handleSignOut()} className="chatPage__logoutButton"> Logout </button></h2>
         <h2> <button onClick={() => navigate('/home')} className="chatPage__backButton"> ⬅ Back to home</button></h2>
         {users.map((user) => (
           <div key={user.id} onClick={() => handleSelectUser(user)}>
