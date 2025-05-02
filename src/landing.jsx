@@ -28,16 +28,36 @@ export default function LandingPage() {
           <div className="logo" onClick={() => navigate('/')}>
             <img src="/MATCHMAID.png" alt="MatchMaid Logo" className="logo-img" />
           </div>
+
           <ul className="nav-links">
-            <li>{t('products')}</li>
-            <li>{t('learn')}</li>
-            <li>{t('safety')}</li>
-            <li>{t('support')}</li>
-            <li>{t('download')}</li>
+            {/* Dropdown for Services */}
+            <li className="dropdown">
+              <span className="menu-title">{t('Services')}</span>
+              <div className="dropdown-content">
+                <div onClick={() => navigate('/services/house')}>House Cleaning</div>
+                <div onClick={() => navigate('/services/move-in-out')}>Move In & Move Out Cleaning</div>
+                <div onClick={() => navigate('/services/apartment')}>Apartment Cleaning</div>
+                <div onClick={() => navigate('/services/bedroom')}>Bedroom Cleaning</div>
+                <div onClick={() => navigate('/services/kitchen')}>Kitchen Cleaning</div>
+                <div onClick={() => navigate('/services/bathroom')}>Bathroom Cleaning</div>
+                <div onClick={() => navigate('/services/living-room')}>Living Room Cleaning</div>
+              </div>
+            </li>
+
+            <li style={{ cursor: 'pointer' }} onClick={() => navigate('/learn')}>
+              {t('Learn')}
+            </li>
+            <li style={{ cursor: 'pointer' }} onClick={() => navigate('/safety')}>
+              {t('Safety')}
+            </li>
+            <li style={{ cursor: 'pointer' }} onClick={() => navigate('/support')}>
+              {t('Support')}
+            </li>
             <li style={{ cursor: 'pointer' }} onClick={() => navigate('/tinder-shuffle/review', { state: { maidId: 'maid123' } })}>
               ⭐ Reviews
             </li>
           </ul>
+
           <div className="nav-actions">
             <button className="language-btn" onClick={toggleLanguage}>
               🌐 {t('language')}
@@ -69,3 +89,4 @@ export default function LandingPage() {
     </>
   );
 }
+
