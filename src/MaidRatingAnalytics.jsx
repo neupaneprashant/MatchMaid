@@ -1,63 +1,70 @@
-import React, { useEffect, useState } from "react";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import React, { useState, useEffect } from "react";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "./firebase";
 import { FaStar } from "react-icons/fa";
-import Spinner from "./Spinner"; // ✅ New
+import Spinner from "./Spinner";
 
 const MaidRatingAnalytics = ({ maidId }) => {
   const [ratings, setRatings] = useState([]);
   const [average, setAverage] = useState(0);
   const [counts, setCounts] = useState({ 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 });
-  const [loading, setLoading] = useState(true); // ✅ New
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (maidId) {
-      fetchRatings();
+    if (!maidId || typeof maidId !== "string" || maidId.length < 10) {
+      console.warn("Invalid maidId passed to MaidRatingAnalytics:", maidId);
+      return;
     }
-  }, [maidId]);
 
-  const fetchRatings = async () => {
-    setLoading(true); // ✅
+    setLoading(true);
     const q = query(collection(db, "reviews"), where("maidId", "==", maidId));
-    const snapshot = await getDocs(q);
-    const data = snapshot.docs.map((doc) => doc.data());
 
-    const total = data.length;
-    const sum = data.reduce((acc, review) => acc + (review.rating || 0), 0);
-    const avg = total > 0 ? (sum / total).toFixed(2) : 0;
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      if (snapshot.empty) {
+        console.warn("No reviews found for this maid:", maidId);
+        setRatings([]);
+        setAverage(0);
+        setCounts({ 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 });
+        setLoading(false);
+        return;
+      }
 
-    const counts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-    data.forEach((r) => {
-      const star = r.rating || 0;
-      if (counts[star]) counts[star]++;
+      const data = snapshot.docs.map((doc) => doc.data() || {});
+      const total = data.length;
+      const sum = data.reduce((acc, r) => acc + (r.rating || 0), 0);
+      const avg = total > 0 ? (sum / total).toFixed(2) : 0;
+
+      const countsObj = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+      data.forEach((r) => {
+        const rating = r.rating || 0;
+        if (countsObj[rating] !== undefined) countsObj[rating]++;
+      });
+
+      setRatings(data);
+      setAverage(avg);
+      setCounts(countsObj);
+      setLoading(false);
     });
 
-    setRatings(data);
-    setAverage(avg);
-    setCounts(counts);
-    setLoading(false); // ✅
-  };
+    return () => unsubscribe();
+  }, [maidId]);
 
   return (
     <div style={styles.container}>
       <h3 style={styles.title}>Rating Analytics</h3>
-
       {loading ? (
         <Spinner />
       ) : (
         <>
           <div style={styles.average}>
             <strong>Average Rating:</strong>{" "}
-            <span style={{ fontSize: "1.4rem", color: "#ff9900" }}>{average}</span>{" "}
-            / 5
+            <span style={{ fontSize: "1.4rem", color: "#ff9900" }}>{average}</span> / 5
           </div>
 
           <div style={styles.barContainer}>
             {[5, 4, 3, 2, 1].map((star) => (
               <div key={star} style={styles.barRow}>
-                <span>
-                  <FaStar color="#ffb400" /> {star}★
-                </span>
+                <span><FaStar color="#ffb400" /> {star}★</span>
                 <progress
                   max={ratings.length}
                   value={counts[star]}
@@ -82,6 +89,7 @@ const styles = {
     boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
     marginTop: 24,
     maxWidth: 500,
+    color: "#111827",
   },
   title: {
     fontSize: "1.4rem",
@@ -110,3 +118,4 @@ const styles = {
 };
 
 export default MaidRatingAnalytics;
+

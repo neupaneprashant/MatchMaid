@@ -15,7 +15,6 @@ import { FaStar } from 'react-icons/fa';
 const MyReviews = () => {
   const auth = getAuth();
   const [user, setUser] = useState(null);
-
   const [myReviews, setMyReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
@@ -133,7 +132,7 @@ const MyReviews = () => {
                     />
                   ))}
                 </div>
-                <p>{rev.text}</p>
+                <p style={{ color: '#111827' }}>{rev.text}</p> {/* ✅ TEXT COLOR FIXED */}
                 <div style={styles.actionRow}>
                   <button onClick={() => handleEditClick(rev)} style={styles.editBtn}>
                     Edit
