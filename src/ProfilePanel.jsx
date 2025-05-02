@@ -1,18 +1,16 @@
 import { useState, useEffect } from 'react';
 import './ProfilePanel.css';
-import { FaUserCircle } from 'react-icons/fa';
 import { getAuth, signOut } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from './firebase';
-import { useNavigate } from 'react-router-dom'; // ✅ NEW
+import { useNavigate } from 'react-router-dom';
 import React from 'react';
 
-function ProfilePanel() {
+function ProfilePanel({open, setOpen}) {
   const auth = getAuth();
-  const navigate = useNavigate(); // ✅ NEW
+  const navigate = useNavigate();
 
   const [user, setUser] = useState(null);
-  const [profileOpen, setProfileOpen] = useState(false);
 
   const [name, setName] = useState('');
   const [pay, setPay] = useState(20);
@@ -63,10 +61,10 @@ function ProfilePanel() {
       }
     };
 
-    if (profileOpen && user) {
-      loadProfile();
-    }
-  }, [profileOpen, user]);
+  if (open && user) {
+    loadProfile();
+  }
+}, [open, user]);
 
   const saveProfile = async () => {
     if (!user) {
@@ -136,21 +134,9 @@ function ProfilePanel() {
 
   return (
     <>
-      <FaUserCircle
-        onClick={() => setProfileOpen(!profileOpen)}
-        size={32}
-        style={{
-          cursor: 'pointer',
-          position: 'fixed',
-          top: '1rem',
-          left: '1rem',
-          zIndex: 1100,
-          color: profileOpen ? '#04AA6D' : '#ccc',
-        }}
-        title={profileOpen ? 'Close Profile' : 'Open Profile'}
-      />
 
-      <div className={`profile-panel ${profileOpen ? 'open' : ''}`}>
+      <div className={`profile-panel ${open ? 'open' : ''}`}>
+
         <h2>Your Maid Profile</h2>
 
         <p><strong>Name:</strong></p>
@@ -225,7 +211,7 @@ function ProfilePanel() {
 
         <br /><br />
         <button onClick={saveProfile}>Save Profile</button>
-        <button style={{ marginLeft: '1rem' }} onClick={checkProfileInConsole}>🔍 Check Profile in Console</button>
+        <button onClick={() => navigate('/maid-chat')} className="chatPage__chatButton"> Chats </button>
         <br /><br />
         <button
           onClick={handleLogout}
