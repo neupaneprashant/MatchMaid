@@ -199,4 +199,15 @@ a:hover {
       transform: rotate(360deg);
     }
   }
+.forgot-password {
+    text-align: center;
+    margin-bottom: 10px;
+}
+  
+.forgot-password a {
+    color: #4a90e2;
+    font-size: 0.9rem;
+    text-decoration: underline;
+    cursor: pointer;
+}
   

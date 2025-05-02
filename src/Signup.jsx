@@ -1,22 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import './signup.css';
-import { auth } from "./firebase";
+import { auth, db } from './firebase';
 import { useNavigate } from 'react-router-dom';
-import { db } from './firebase';
 import { setDoc, doc, getDoc } from 'firebase/firestore';
 import {
   GoogleAuthProvider,
+  FacebookAuthProvider,
   signInWithPopup,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  updateProfile
+  updateProfile,
+  sendPasswordResetEmail
 } from 'firebase/auth';
 
 function Signup({ defaultView = 'signup' }) {
   const [isSignup, setIsSignup] = useState(defaultView === 'signup');
   const [form, setForm] = useState({ name: '', email: '', password: '', role: 'customer' });
   const [loading, setLoading] = useState(false);
-
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -58,7 +58,7 @@ function Signup({ defaultView = 'signup' }) {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, form.email, form.password);
       const user = userCredential.user;
-      const userDoc = await getDoc(doc(db, "users", user.uid));
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
       const userData = userDoc.data();
 
       if (userData?.role === 'maid') {
@@ -79,7 +79,7 @@ function Signup({ defaultView = 'signup' }) {
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
-      const userDocRef = doc(db, "users", user.uid);
+      const userDocRef = doc(db, 'users', user.uid);
       const userDocSnap = await getDoc(userDocRef);
 
       if (!userDocSnap.exists()) {
@@ -98,10 +98,56 @@ function Signup({ defaultView = 'signup' }) {
         navigate('/home');
       }
     } catch (error) {
-      console.error("Google Sign-In Error:", error.message);
+      console.error('Google Sign-In Error:', error.message);
       alert(`Error: ${error.message}`);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleFacebookSignIn = async () => {
+    const provider = new FacebookAuthProvider();
+    setLoading(true);
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      const userDocRef = doc(db, 'users', user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+
+      if (!userDocSnap.exists()) {
+        await setDoc(userDocRef, {
+          name: user.displayName || '',
+          email: user.email,
+          role: 'customer',
+          createdAt: new Date(),
+        });
+      }
+
+      const userData = (await getDoc(userDocRef)).data();
+      if (userData.role === 'maid') {
+        navigate('/maid-portal');
+      } else {
+        navigate('/home');
+      }
+    } catch (error) {
+      console.error('Facebook Sign-In Error:', error.message);
+      alert(`Error: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!form.email) {
+      alert("Please enter your email to reset your password.");
+      return;
+    }
+
+    try {
+      await sendPasswordResetEmail(auth, form.email);
+      alert("Password reset email sent! Please check your inbox.");
+    } catch (error) {
+      alert(error.message);
     }
   };
 
@@ -118,9 +164,11 @@ function Signup({ defaultView = 'signup' }) {
           <h1>Sign In</h1>
           <div className="social-icons">
             <a href="#" className="icon" onClick={handleGoogleSignIn}>
-              <i className='bx bxl-google'></i>
+              <i className="bx bxl-google"></i>
             </a>
-            <a href="#" className="icon"><i className='bx bxl-facebook'></i></a>
+            <a href="#" className="icon" onClick={handleFacebookSignIn}>
+              <i className="bx bxl-facebook"></i>
+            </a>
           </div>
           <div className="form-message-container">
             <span>Or use your email and password</span>
@@ -142,18 +190,30 @@ function Signup({ defaultView = 'signup' }) {
               onChange={handleChange}
               required
             />
+            <p className="forgot-password">
+              <a href="#" onClick={(e) => { e.preventDefault(); handleForgotPassword(); }}>
+                Forgot Password?
+              </a>
+            </p>
             <button type="submit">Sign In</button>
           </form>
-          <p>Don't have an account? <a href="#" onClick={(e) => { e.preventDefault(); setIsSignup(true); }}>Sign Up</a></p>
+          <p>
+            Don't have an account?{' '}
+            <a href="#" onClick={(e) => { e.preventDefault(); setIsSignup(true); }}>
+              Sign Up
+            </a>
+          </p>
         </div>
       ) : (
         <div className="signup-form">
           <h1>Create An Account</h1>
           <div className="social-icons">
             <a href="#" className="icon" onClick={handleGoogleSignIn}>
-              <i className='bx bxl-google'></i>
+              <i className="bx bxl-google"></i>
             </a>
-            <a href="#" className="icon"><i className='bx bxl-facebook'></i></a>
+            <a href="#" className="icon" onClick={handleFacebookSignIn}>
+              <i className="bx bxl-facebook"></i>
+            </a>
           </div>
           <div className="form-message-container">
             <span>Or use your email for registration</span>
@@ -201,7 +261,12 @@ function Signup({ defaultView = 'signup' }) {
             />
             <button type="submit">Sign Up</button>
           </form>
-          <p>Already have an account? <a href="#" onClick={(e) => { e.preventDefault(); setIsSignup(false); }}>Sign In</a></p>
+          <p>
+            Already have an account?{' '}
+            <a href="#" onClick={(e) => { e.preventDefault(); setIsSignup(false); }}>
+              Sign In
+            </a>
+          </p>
         </div>
       )}
     </div>
