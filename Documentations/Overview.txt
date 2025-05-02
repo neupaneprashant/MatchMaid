@@ -1,0 +1,116 @@
+🧹 MatchMaid: Tinder-style Maid Hiring App
+MatchMaid is a web application where users can browse, swipe, hire, and review maids in a Tinder-style interface. It uses React, Firebase (Auth, Firestore, Storage, Cloud Messaging), and supports both customers and maids with separate functionalities.
+
+📁 Table of Contents
+    Tech Stack
+
+    Project Setup
+
+    Firebase Configuration
+
+    User Roles & Authentication
+
+    Main App Flow
+
+    Component Overview
+
+    Firestore Structure
+
+    Security Rules
+
+    Notifications
+
+Future Improvements
+
+💻 Tech Stack
+    React + Tailwind CSS
+
+    Firebase Authentication
+
+    Firestore (Realtime Database)
+
+    Firebase Cloud Storage
+
+    Firebase Cloud Messaging
+
+    Vite + Node.js
+
+    Lucide Icons, Framer Motion
+
+🔧 Project Setup
+    git clone https://github.com/neupaneprashant/MatchMaid.git
+    cd MatchMaid
+    npm install
+    npm run dev
+
+🔑 Firebase Configuration
+    In your .env file:
+    import { initializeApp, getApps } from "firebase/app";
+    import { getAuth, FacebookAuthProvider, signInWithPopup } from "firebase/auth";
+    import { getFirestore } from "firebase/firestore";
+    // import { getAnalytics } from "firebase/analytics"; // optional
+
+    const firebaseConfig = {
+    apiKey: "-----------",
+    authDomain: "-----",
+    projectId: "-------",
+    storageBucket: "------",
+    messagingSenderId: "---",
+    appId: "-----",
+    measurementId: "----"
+    };
+
+    const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+
+    export const auth = getAuth(app);
+    export const db = getFirestore(app);
+    export const facebookProvider = new FacebookAuthProvider();
+    export { signInWithPopup };
+
+
+*Use initializeApp from firebase/app and setup providers in firebase.js.
+
+👥 User Roles & Authentication
+Customers:
+
+    Can swipe through maids
+
+    Book & complete tasks
+
+    Leave reviews
+
+Maids:
+
+    Can view bookings
+
+    Reply to reviews
+
+    Track ratings/analytics
+
+    Firebase Auth stores user info. Firestore stores user profiles under a users collection.
+
+🔄 Main App Flow
+    Landing Page: Introduces the service.
+
+    Authentication Modal: Login or Signup (Role selection)
+
+    User Dashboard:
+
+    Customer View: Tinder-style swiper → Book Maid → ChatPage → Mark Complete → Leave Review
+
+    Maid View: View Bookings → View Reviews → Respond → Track Analytics
+
+    Real-time Updates via Firestore.
+
+    Notifications sent using Firebase Cloud Messaging.
+
+
+🔔 Notifications
+    Firebase Cloud Messaging sends alerts to maids when:
+
+    A customer leaves a review
+
+    A customer completes a booking
+
+    Each maid registers an FCM token and stores it under notifications/{maidId}.
+

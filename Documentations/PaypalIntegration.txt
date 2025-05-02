@@ -1,0 +1,51 @@
+💳 PayPalButton Documentation
+
+📌 Purpose
+    This component allows users to subscribe or make payments via PayPal in the MatchMaid app. It integrates with PayPal’s checkout system and records the transaction in Firebase Firestore upon successful payment.
+
+🔧 Key Features
+                Feature	Description
+🧾 PayPal Buttons	                Secure payment interface with purchase units and intent
+🔐 Auth Integration	                Links payments to currently authenticated Firebase users
+🧠 Firestore Logging	            Saves each transaction in the transactions collection
+🪄 UI Popup	                         PayPal buttons appear only on hover to keep interface minimal
+
+🧩 Component Logic
+    🔄 useState:
+    const [showPayPal, setShowPayPal] = useState(false);
+
+Controls visibility of the PayPal UI popup on hover.
+
+⚙️ initialOptions:
+
+const initialOptions = {
+  "client-id": "YOUR_CLIENT_ID",
+  currency: "USD",
+  intent: "capture",
+};
+
+-- Basic configuration for PayPal Checkout. (Replace with your actual Client ID.)
+
+
+📦 createOrder Logic for instance:
+Creates a $10 payment order:
+    purchase_units: [{ amount: { value: "10.00" } }]
+
+✅ onApprove
+
+    When payment succeeds:
+        Captures order via actions.order.capture()
+        Retrieves Firebase Auth user
+        Adds transaction data to Firestore under the transactions collection
+
+🔐 Firestore Collection Used
+    transactions/
+        - customerId: string (Firebase UID)
+        - maidId: string or null (to associate later)
+        - amount: string (e.g., "10.00")
+        - status: string (e.g., "COMPLETED")
+        - date: Timestamp (serverTimestamp)
+        - serviceDate: Timestamp (optional)
+        - hoursBooked: number (optional)
+        - paymentMethod: "PayPal"
+        - transactionId: string (PayPal order ID)

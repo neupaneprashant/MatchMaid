@@ -1,0 +1,43 @@
+📅 MaidDatePicker.jsx — Maid Schedule Date Picker
+
+📌 Purpose
+    MaidDatePicker is a lightweight date selection component for maids to choose availability dates or service scheduling within the MatchMaid app. It uses the react-datepicker library for an intuitive UI and consistent formatting.
+
+✨ Features
+
+Feature	Description
+
+📆 Date Selection	            Lets users select a date from a calendar picker
+🎯 Live Feedback	            Displays the selected date immediately
+🎨 Styled UI	                Custom styling via datepicker.css
+🧱 Format                       Customization	Dates formatted as Month Day, Year
+
+🧩 Component Structure:
+📥 State
+const [selectedDate, setSelectedDate] = React.useState(null);
+
+📌 Notes -- Holds the currently selected date. null by default.
+
+🔄 Event Handler
+    const handleDateChange = (date) => {
+    setSelectedDate(date);
+    };
+
+📌 Notes -- Updates the selectedDate when the user chooses a date from the calendar.
+
+📦 Dependencies
+Package                 	Use
+react-datepicker	        Calendar UI and logic
+date-fns	                (Peer dep, used internally by react-datepicker)
+
+Install:
+        npm install react-datepicker
+
+📌 Notes
+    Currently only selects a single date (no time or range).
+    You can easily extend it to support:
+    Time selection (showTimeSelect)
+    Date ranges (selectsRange)
+    Disabled dates (excludeDates)
+    
+Works well with Firebase or stateful forms for booking.
