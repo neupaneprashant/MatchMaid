@@ -34,6 +34,7 @@ function Signup({ defaultView = 'signup' }) {
       const userCredential = await createUserWithEmailAndPassword(auth, form.email, form.password);
       await updateProfile(userCredential.user, { displayName: form.name });
       await setDoc(doc(db, 'users', userCredential.user.uid), {
+        uid: userCredential.user.uid,  // ✅ store UID explicitly
         name: form.name,
         email: form.email,
         role: form.role,
