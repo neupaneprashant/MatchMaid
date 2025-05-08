@@ -1,0 +1,6 @@
+node_modules
+src/firebase.js
+src/tailwind.js
+src/i8n.js
+package.json
+package-lock.json
