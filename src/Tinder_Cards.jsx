@@ -4,6 +4,16 @@ import ProfilePanel from "./ProfilePanel";
 import { FaUserCircle } from "react-icons/fa"; 
 import "./Tinder_Cards.css";
 import PayPalButton from "./Pay_Pal";
+import { db } from "./firebase";
+import { collection, 
+  addDoc, 
+  getDocs, 
+  query, 
+  where, 
+  doc, 
+  setDoc, 
+  serverTimestamp } from "firebase/firestore";
+
 
 const cardData = [
   {
@@ -24,7 +34,7 @@ const cardData = [
   },
 ];
 
-function Card({ id, url, setCards, cards }) {
+function Card({ id, url, setCards, cards, currentUser, handleSwipeRight }) {
   const x = useMotionValue(0);
   const rotateBase = useTransform(x, [-150, 150], [-18, 18]);
   const opacity = useTransform(x, [-150, 0, 150], [0, 1, 0]);
@@ -33,11 +43,47 @@ function Card({ id, url, setCards, cards }) {
   const offset = isFront ? 0 : id % 2 ? 6 : -6;
   const rotate = useTransform(rotateBase, (r) => `${r + offset}deg`);
 
-  const handleDragEnd = () => {
+  ////////modificatinos: keep//////////
+  const handleDragEnd = async () => {
+    if (x.get() > 100) {
+      // Swipe right - initialize chat
+      await handleSwipeRight(id); // Pass maid ID
+    }
+  
     if (Math.abs(x.get()) > 100) {
       setCards((prev) => prev.filter((card) => card.id !== id));
     }
   };
+
+  const handleSwipeRight = async (maidId) => {
+    if (!currentUser || !maidId) return;
+  
+    try {
+      // Check for existing chat
+      const chatQuery = query(collection(db, "chats"), where("users", "array-contains", currentUser.uid));
+      const snapshot = await getDocs(chatQuery);
+  
+      const chatExists = snapshot.docs.find(doc => {
+        const users = doc.data().users;
+        return users.includes(maidId);
+      });
+  
+      if (chatExists) return; // Already exists
+  
+      // Create new chat
+      const newChatRef = doc(collection(db, "chats"));
+      await setDoc(newChatRef, {
+        users: [currentUser.uid, maidId],
+        createdAt: serverTimestamp()
+      });
+  
+      // Optional: You could also store a record in a "swipes" collection if needed
+  
+    } catch (error) {
+      console.error("Error creating chat:", error);
+    }
+  };
+  
 
   return (
     <motion.img
@@ -93,7 +139,7 @@ function TinderCards() {
       <div className={`main-content ${profileOpen ? "shifted" : ""}`}>
         <div className="tinderCards__cardContainer">
           {cards.map((card) => (
-            <Card key={card.id} {...card} setCards={setCards} cards={cards} />
+            <Card key={card.id} {...card} setCards={setCards} cards={cards} currentUser={currentUser} handleSwipeRight={handleSwipeRight} />
           ))}
         </div>
       </div>
