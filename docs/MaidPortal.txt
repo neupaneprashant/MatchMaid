@@ -1,0 +1,74 @@
+📌 Purpose
+    MaidPortal provides a centralized dashboard for maid users in the MatchMaid app to view earnings, past bookings, and navigate to other tools like chat, calendar, and analytics.
+
+🔧 Key Features
+    Feature	Description
+    🏠 Dashboard Overview	        Displays welcome message, total earnings, and past bookings
+    📈 Earnings Chart View	        Visual representation of monthly income using EarningsChart
+    💬 Go to Chat	                Redirects to maid chat interface
+    📅 Manage Availability	        Button to navigate to a schedule creation page
+    ✅ Filter Bookings (WIP)        Placeholder for future filtering functionality
+    🚪 Sign Out	                    Securely signs out and redirects to the homepage
+
+🧩 Component Logic
+    State Variables
+
+    State	                        Purpose
+    transactions	        Stores booking/payment history for the current maid
+    totalEarnings	        Sum of all completed transaction amounts
+    loading	                Indicates if data is still being fetched
+    view	                Controls the active section/tab in the dashboard
+    earningsData        	Monthly earnings, formatted for the chart component
+
+
+useEffect:-
+    Uses onAuthStateChanged to detect the currently authenticated user
+
+    Fetches all transactions where maidId == user.uid
+
+    Calculates totalEarnings and prepares monthly summaries for the chart
+
+
+📤 Firebase Collections Used
+    transactions — each document must contain:
+        {
+  "maidId": "userUid",
+  "amount": 120,
+  "status": "completed",
+  "date": Timestamp
+}
+
+🖼️ Conditional Views (view state)
+View	        What It Renders
+'dashboard' 	Welcome message, earnings, transactions
+'chart'	        <EarningsChart /> with earningsData
+'filter'    	Placeholder: “Filter Bookings (coming soon)”
+'calendar'	    Button to navigate to /maid-schedule
+'chat'	        Placeholder: redirects to ChatPage
+
+
+🚪 Sign Out Logic
+        const handleSignOut = async () => {
+        const auth = getAuth();
+        await signOut(auth);
+        window.location.href = '/';
+        };
+
+🎨 maidportal.css
+
+                  Styling Overview
+
+Class Name                  	Description
+.maid-portal-container	        Flex layout with full height
+.sidebar	                    Fixed-width dark vertical sidebar with navigation buttons
+.dashboard-title	            Sidebar heading
+.sidebar-options	            List of tab buttons (Overview, Chart, etc.)
+.signout-button	                Styled green border logout button with hover effect
+.dashboard-content	            Main content area where each view loads
+.transactions-section	        Styled dark card for displaying booking history
+.welcome-text	                Large, bold welcome heading
+.total-earnings	                Highlighted total earnings text in green
+
+🔍 Sample Sidebar Button Behavior
+<button onClick={() => setView('dashboard')}>🏠 Overview</button>
+Updates the view state, and the corresponding content is rendered conditionally.

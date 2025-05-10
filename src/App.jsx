@@ -12,6 +12,7 @@ import SafetyPage from './safety';
 import ChatbaseIframe from './ChatbaseIframe'; // Replaces SupportPage
 import MaidPortal from './MaidPortal';
 import ProfilePage from './MaidPage';
+import HiredMaids from './HiredMaids';
 
 // CSS imports
 import './App.css';
@@ -42,6 +43,8 @@ function App() {
           <Route path="/maid-chat" element={<ChatPage />} />
           <Route path="/maid-schedule" element={<ProfilePage />} />
           <Route path="/maid-chat" element={<ChatPage />} />
+          <Route path="/hired-maids" element={<HiredMaids />} />
+          
         </Routes>
       </Router>
     </PayPalScriptProvider>

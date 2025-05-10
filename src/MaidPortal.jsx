@@ -36,9 +36,11 @@ function MaidPortal() {
   useEffect(() => {
     const auth = getAuth();
     let unsubscribeReviews = () => {};
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setMaid(user);
+
         const q = query(collection(db, 'transactions'), where('maidId', '==', user.uid));
         const querySnapshot = await getDocs(q);
         const fetched = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -73,6 +75,7 @@ function MaidPortal() {
           setMaidReviews(reviews);
         });
       }
+
       setLoading(false);
     });
 
@@ -121,10 +124,10 @@ function MaidPortal() {
           <button onClick={() => setView('dashboard')}>🏠 Overview</button>
           <button onClick={() => navigate('/maid-chat')}>💬 Go to Chat</button>
           <button onClick={() => setView('chart')}>📈 Earnings Chart</button>
-          <button onClick={() => setView('filter')}>✅ Filter Bookings</button>
           <button onClick={() => setView('calendar')}>📅 Manage Availability</button>
           <button onClick={() => setView('reviews')}>🗨️ View Reviews</button>
           <button onClick={() => navigate('/my-reviews')}>📝 My Reviews</button>
+          <button onClick={() => navigate('/hired-maids')}>🧹 Hired Maids</button>
         </div>
         <button className="signout-button" onClick={handleSignOut}>🚪 Sign Out</button>
       </div>
@@ -152,7 +155,6 @@ function MaidPortal() {
         )}
 
         {view === 'chart' && <EarningsChart earningsData={earningsData} />}
-        {view === 'filter' && <h2>Filter Bookings (coming soon)</h2>}
         {view === 'calendar' && (
           <div>
             <button onClick={() => navigate('/maid-schedule')}>🗓️ Create Schedule</button>

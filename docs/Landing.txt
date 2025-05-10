@@ -1,0 +1,85 @@
+📌 Purpose
+    The LandingPage component serves as the homepage and entry point for users visiting the MatchMaid app. It combines a branded layout, internationalization support, navigation, a service dropdown, and a modal-based authentication system.
+
+🧱 Features
+    🧼 Branded navigation bar with a logo and dynamic links
+
+    🗂 Dropdown for categorized maid services
+
+    🌐 Multi-language toggle using react-i18next (en ↔ es)
+
+    🔐 Login & Signup modal integration
+
+    ⭐ Shortcut to review section for demo/testing
+
+🧩 Component Structure
+Imports
+    react, useState — state management
+
+    react-router-dom — navigation
+
+    react-i18next — localization
+
+    Modal, Signup — modal-based auth UI
+
+    landing.css — custom styles
+
+🧑‍💻 State Variables
+    State	            Type	            Description
+    showModal	        boolean	            Controls visibility of the login/signup modal
+    isSignupView    	boolean             Determines whether Signup or Login is shown
+
+🚀 Functions
+    toggleLanguage()
+    Toggles between English and Spanish (en ↔ es)
+
+    openModal(view)
+    Opens the modal with either 'signup' or 'login' view
+
+
+🧭 Navigation Links
+    Label	            Route
+    Services	        Dropdown with multiple paths
+    Learn	            /learn
+    Safety	            /safety
+    Support	            /support
+    Reviews ⭐	        /tinder-shuffle/review
+
+🛎 Services Dropdown
+    Includes:
+
+    House Cleaning
+
+    Move In & Move Out Cleaning
+
+    Apartment Cleaning
+
+    Bedroom, Kitchen, Bathroom, Living Room Cleaning
+
+*In future each links will route to /services/{service-name} route.
+
+
+📦 Modal Usage
+    <Modal show={showModal} onClose={() => setShowModal(false)}>
+  <Signup defaultView={isSignupView ? 'signup' : 'login'} />
+</Modal>
+
+The modal wraps a Signup component, which dynamically switches between login/signup views based on the isSignupView flag.
+
+🌐 Internationalization
+    All labels and CTA text are translated using t('key') from useTranslation().
+
+    Language toggle button switches between 'en' and 'es'.
+
+
+🖼 UI Sections
+    Navbar with logo, links, and language/auth buttons
+
+    Hero Section:
+
+    Headline: "Swipe Right™"
+
+    CTA button: "Create Account"
+
+    Modal: Login/Signup controlled by modal state
+

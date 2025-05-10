@@ -1,0 +1,88 @@
+📌 Purpose
+    This component handles user registration, login, and social authentication (Google, Facebook) for the MatchMaid app. It supports role-based routing, distinguishing between maid and customer.
+
+✨ Key Features
+    Feature	Description
+        📝 Sign Up Form	                Email/password-based account creation with role selection
+        🔐 Sign In Form	                Email/password-based login with Firebase Authentication
+        🌍 Social Sign-In	            Google and Facebook login support via signInWithPopup()
+        🧭 Role-based Routing	        Redirects maids to /maid-portal and customers to /home
+        📧 Forgot Password	            Triggers Firebase password reset email
+        🌀 Loading Spinner	            Visual loading state during async operations
+
+🧩 Props:
+        | Prop          | Type     | Required | Description                                        |
+        | ------------- | -------- | -------- | -------------------------------------------------- |
+        | `defaultView` | `string` | No       | Either `'signup'` or `'login'` to set initial mode |
+
+🔐 Authentication Methods
+    Method	                    Firebase API Used
+    Email Sign Up	            createUserWithEmailAndPassword
+    Email Sign In	            signInWithEmailAndPassword
+    Google Sign In	            signInWithPopup(GoogleAuthProvider)
+    Facebook Sign In	        signInWithPopup(FacebookAuthProvider)
+    Forgot Password	            sendPasswordResetEmail
+
+🔍 Firestore Integration
+On new signup, user data is stored in Firestore:
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "role": "maid" | "customer",
+  "createdAt": Timestamp
+}
+
+Collection: users & Document ID: user.uid
+
+🧠 Component State
+State	            Purpose
+isSignup	        Boolean to toggle between Sign Up and Sign In views
+form	            Object with name, email, password, role
+loading             Boolean for showing the loading spinner
+
+🚦 Navigation
+        Role	           Redirect Path
+        maid	           /maid-portal
+        customer	       /home
+
+📦 Dependencies
+    Firebase Auth & Firestore:  
+            auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, updateProfile, sendPasswordResetEmail, setDoc, doc, getDoc
+    React Router:useNavigate
+    CSS: signup.css
+    Icons: boxicons (bx bxl-google, bx bxl-facebook)
+
+🖼 UI Sections
+
+    Sign Up Form
+        Name, Email, Password
+
+        Role switch: 🧹 Customer | 🧼 Maid
+
+        Social Sign Up (Google/Facebook)
+
+    Sign In Form
+
+        Email, Password
+
+        Forgot Password
+
+        Social Sign In
+
+    Role-Based Routing
+
+usage Example:
+    <Modal show={showModal} onClose={() => setShowModal(false)}>
+    <Signup defaultView="signup" />
+    </Modal>
+
+📌 Notes
+    Make sure to configure OAuth credentials for Google and Facebook in your Firebase console.
+
+    Roles (maid vs customer) affect access control and navigation throughout the app
+
+Instructions for setting up firebase for facebook:
+    -- https://firebase.google.com/docs/auth/web/facebook-login
+
+Instruction for google authentication:
+   --  https://firebase.google.com/docs/auth

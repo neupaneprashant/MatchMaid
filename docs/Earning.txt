@@ -1,0 +1,37 @@
+📈 EarningsChart:
+
+📌 Purpose
+    EarningsChart displays a line chart visualizing a maid's monthly earnings. It helps users track income trends over time in a clean, responsive dashboard format.
+
+📊 Features
+
+            Feature	Description
+
+📅 Monthly Labels	        X-axis shows months (e.g., Jan, Feb, etc.)
+💰 Earnings Line	        Y-axis plots total earnings per month
+🧭 Tooltips	Hovering        shows the exact amount earned for a month
+📱 Responsive Layout       	Adapts to container width and height dynamically
+
+🧩 Props:
+
+    Prop	                Type	    Required	                Description
+    earningsData        	Array	      ✅ Yes          	Array of objects with { month, amount } format
+
+📦 Dependencies :  recharts
+
+Charting library for building composable charts in React
+
+Install : npm install recharts
+
+⚙️ Chart Components Used
+Component	            Purpose
+LineChart	            Container for the chart
+Line	                Renders the actual earnings line
+XAxis / YAxis	        Displays axis labels and scale
+CartesianGrid	        Adds grid lines for better readability
+Tooltip	                Shows details on hover
+ResponsiveContainer	    Ensures chart scales with layout
+
+🖼️ Output Example
+A line chart with months on the x-axis and earnings on the y-axis. The line is green (#04AA6D) and uses a smooth curve (type="monotone").
+

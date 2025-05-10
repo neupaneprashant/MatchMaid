@@ -1,0 +1,63 @@
+MaidRatingAnalyticsComponent
+
+
+Purpose
+    MaidRatingAnalytics displays average rating, total number of reviews, and a visual star-wise breakdown of a maid's ratings. It helps maids understand how they're performing based on customer feedback.
+
+| Prop     | Type   | Required | Description                                               |
+| -------- | ------ | -------- | --------------------------------------------------------- |
+| `maidId` | String | ✅ Yes    | The Firestore UID of the maid whose reviews are analyzed. |
+
+
+⚙️ How It Works
+    Data Fetching: On mount or whenever maidId changes, it queries the reviews collection in Firestore for all reviews with a matching maidId.
+
+Calculation:
+
+    Computes the average rating.
+
+    Counts how many reviews were rated 5★, 4★, ..., down to 1★.
+
+UI Display:
+
+    Shows average rating numerically.
+
+    Displays a progress bar for each star level (1 to 5).
+
+    Lists total number of reviews.
+
+    Shows a spinner while loading.
+
+🔥 Firestore Collection Used
+    reviews: Each document is expected to contain:
+
+    maidId: string
+
+    rating: number (1–5)
+
+🔄 useEffect Logic
+    useEffect(() => {
+    if (maidId) {
+        fetchRatings();
+    }
+    }, [maidId]);
+
+This ensures ratings are re-fetched whenever a new maidId is provided.
+
+📦 Dependencies
+    React Icons: react-icons/fa for star icon
+
+    Firebase: Firestore SDK
+
+    Spinner: Custom loading component (imported as Spinner)
+
+Rating Analytics
+Average Rating: 4.50 / 5
+
+[★ 5] [███████████████████████████]  12
+[★ 4] [███████████████            ]  7
+[★ 3] [████                      ]  3
+[★ 2] [                          ]  0
+[★ 1] [██                        ]  1
+
+Total Reviews: 23
