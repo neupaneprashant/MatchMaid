@@ -7,19 +7,21 @@ import { auth, db } from "./firebase";
 import {
   collection,
   addDoc,
-  getDocs,
   query,
   where,
   serverTimestamp,
   doc,
   getDoc,
+  getDocs,
   onSnapshot,
   orderBy,
   setDoc,
+  deleteDoc
 } from "firebase/firestore";
 
 function ChatPage() {
   const [currentUser, setCurrentUser] = useState(null);
+  const [userRole, setUserRole] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [messageInput, setMessageInput] = useState("");
   const [chatId, setChatId] = useState(null);
@@ -33,39 +35,46 @@ function ChatPage() {
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        setCurrentUser(user);
-        await fetchHiredMaids(user.uid);
+        setCurrentUser({ userId: user.uid, email: user.email });
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          setUserRole(userDoc.data().role);
+        }
+        const unsubMaids = fetchHiredMaids(user.uid);
+        return () => unsubMaids();
       }
     });
     return () => unsub();
   }, []);
 
-  const fetchHiredMaids = async (userId) => {
-    const bookingsSnap = await getDocs(
-      query(collection(db, "bookings"), where("userId", "==", userId))
-    );
+  const handleBackToHome = () => {
+    if (userRole === "maid") {
+      navigate("/maid-portal");
+    } else {
+      navigate("/home");
+    }
+  };
 
-    const maids = await Promise.all(
-      bookingsSnap.docs.map(async (bookingDoc) => {
-        const booking = bookingDoc.data();
-        const maidSnap = await getDoc(doc(db, "users", booking.maidId));
-        const maidData = maidSnap.exists() ? maidSnap.data() : {};
+  const fetchHiredMaids = (userId) => {
+    const q = query(collection(db, "HiredMaids"), where("userId", "==", userId));
+    const unsub = onSnapshot(q, (snapshot) => {
+      const maids = snapshot.docs.map((doc) => {
+        const data = doc.data();
         return {
-          id: bookingDoc.id,
-          maidId: booking.maidId,
-          name: maidData.name || "Unknown Maid",
-          photoURL: maidData.photoURL || "https://i.pravatar.cc/150?img=11",
-          datetime: booking.datetime,
-          status: booking.status,
+          maidId: data.maidId,
+          name: data.maidName,
+          photoURL: data.maidAvatar || "https://i.pravatar.cc/150?img=11",
+          datetime: data.scheduledTime,
+          status: data.status,
         };
-      })
-    );
-
-    setHiredMaids(maids);
+      });
+      setHiredMaids(maids);
+    });
+    return unsub;
   };
 
   const getOrCreateChat = async (otherUserId) => {
-    const q = query(collection(db, "chats"), where("users", "array-contains", currentUser.uid));
+    const q = query(collection(db, "chats"), where("users", "array-contains", currentUser.userId));
     const snapshot = await getDocs(q);
 
     for (let docSnap of snapshot.docs) {
@@ -78,10 +87,22 @@ function ChatPage() {
 
     const newChatRef = doc(collection(db, "chats"));
     await setDoc(newChatRef, {
-      users: [currentUser.uid, otherUserId],
+      users: [currentUser.userId, otherUserId],
       createdAt: serverTimestamp(),
     });
     setChatId(newChatRef.id);
+  };
+
+  const handleDeleteChat = async () => {
+    if (!chatId) return;
+    try {
+      await deleteDoc(doc(db, "chats", chatId));
+      setChatId(null);
+      setMessages([]);
+      alert("Chat deleted successfully.");
+    } catch (err) {
+      alert("Failed to delete chat: " + err.message);
+    }
   };
 
   const handleSelectMaid = async (maid) => {
@@ -105,7 +126,7 @@ function ChatPage() {
     if (!messageInput.trim() || !selectedUser || !chatId) return;
 
     await addDoc(collection(db, "chats", chatId, "messages"), {
-      senderId: currentUser.uid,
+      senderId: currentUser.userId,
       text: messageInput,
       createdAt: serverTimestamp(),
     });
@@ -119,7 +140,7 @@ function ChatPage() {
 
     try {
       await addDoc(collection(db, "bookings"), {
-        userId: currentUser.uid,
+        userId: currentUser.userId,
         maidId: selectedUser.maidId,
         datetime: new Date(dateTime).toISOString(),
         status: "pending",
@@ -136,9 +157,9 @@ function ChatPage() {
     if (!selectedUser || !currentUser) return;
 
     try {
-      const docId = `${currentUser.uid}_${selectedUser.maidId}`;
+      const docId = `${currentUser.userId}_${selectedUser.maidId}`;
       await setDoc(doc(db, "completedTasks", docId), {
-        userId: currentUser.uid,
+        userId: currentUser.userId,
         maidId: selectedUser.maidId,
         status: "completed",
         timestamp: serverTimestamp(),
@@ -176,7 +197,7 @@ function ChatPage() {
     <div className="chatPage">
       <div className="chatPage__sidebar">
         <button onClick={handleSignOut} className="chatPage__logoutButton">Logout</button>
-        <button onClick={() => navigate("/maid-portal")} className="chatPage__backButton">⬅ Back to Home</button>
+        <button onClick={handleBackToHome} className="chatPage__backButton">⬅ Back to Home</button>
 
         <h3 style={{ color: "#f9fafb", margin: "1rem 0 0.5rem" }}>Your Hired Maids</h3>
         {hiredMaids.length === 0 ? (
@@ -186,7 +207,7 @@ function ChatPage() {
             <div
               key={maid.maidId}
               onClick={() => handleSelectMaid(maid)}
-              className="chatPage__maidCard"
+              className={`chatPage__maidCard ${selectedUser?.maidId === maid.maidId ? "selected" : ""}`}
               style={{ cursor: "pointer", marginBottom: "1rem", display: "flex", gap: "1rem", alignItems: "center" }}
             >
               <img src={maid.photoURL} alt={maid.name} style={{ width: 50, height: 50, borderRadius: "50%" }} />
@@ -222,16 +243,20 @@ function ChatPage() {
           <>
             <div className="chatPage__messages">
               <h2>Chat with {selectedUser.name}</h2>
-              {messages.map((msg, index) => (
-                <p
-                  key={msg.id || index}
-                  className={`chatPage__message ${
-                    msg.senderId === currentUser.uid ? "sent" : "received"
-                  }`}
-                >
-                  {msg.text}
-                </p>
-              ))}
+              {messages.map((msg, index) => {
+                const isSent = msg.senderId === currentUser.userId;
+                const timestamp = msg.createdAt?.toDate ? new Date(msg.createdAt.toDate()).toLocaleString() : "";
+
+                return (
+                  <div
+                    key={msg.id || index}
+                    className={`chatPage__messageWrapper ${isSent ? "sent" : "received"}`}
+                  >
+                    <p className={`chatPage__message ${isSent ? "sent" : "received"}`}>{msg.text}</p>
+                    <span className={`chatPage__timestamp ${isSent ? "sent" : "received"}`}>{timestamp}</span>
+                  </div>
+                );
+              })}
               <div ref={messagesEndRef} />
             </div>
 
@@ -246,74 +271,24 @@ function ChatPage() {
               <button onClick={handleSendMessage} className="chatPage__sendButton">Send</button>
             </div>
 
-            {/* 📅 Hire Maid Section - Improved UI */}
-            <div
-              style={{
-                marginTop: "2rem",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: "0.75rem",
-              }}
-            >
-              <label
-                htmlFor="datetime"
-                style={{
-                  color: "#f9fafb",
-                  fontSize: "1rem",
-                  fontWeight: 500,
-                }}
-              >
+            <div style={{ marginTop: "2rem", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem" }}>
+              <label htmlFor="datetime" style={{ color: "#f9fafb", fontSize: "1rem", fontWeight: 500 }}>
                 📅 Select date and time:
               </label>
-
               <input
                 id="datetime"
                 type="datetime-local"
                 value={dateTime}
                 onChange={(e) => setDateTime(e.target.value)}
-                style={{
-                  backgroundColor: "#1f2937",
-                  color: "#f9fafb",
-                  border: "1px solid #374151",
-                  padding: "10px 14px",
-                  borderRadius: "8px",
-                  fontSize: "1rem",
-                  width: "100%",
-                  maxWidth: "300px",
-                  textAlign: "center",
-                }}
+                style={{ backgroundColor: "#1f2937", color: "#f9fafb", border: "1px solid #374151", padding: "10px 14px", borderRadius: "8px", fontSize: "1rem", width: "100%", maxWidth: "300px", textAlign: "center" }}
               />
-
-              <button
-                onClick={handleHireMaid}
-                style={{
-                  backgroundColor: "#1d4ed8",
-                  color: "white",
-                  padding: "10px 18px",
-                  border: "none",
-                  borderRadius: 6,
-                  fontWeight: "bold",
-                  cursor: "pointer",
-                }}
-              >
+              <button onClick={handleHireMaid} style={{ backgroundColor: "#1d4ed8", color: "white", padding: "10px 18px", border: "none", borderRadius: 6, fontWeight: "bold", cursor: "pointer" }}>
                 📅 Hire This Maid
               </button>
             </div>
 
             <div style={{ marginTop: "1rem", textAlign: "center" }}>
-              <button
-                onClick={handleMarkComplete}
-                style={{
-                  backgroundColor: "#04AA6D",
-                  color: "white",
-                  padding: "10px 18px",
-                  border: "none",
-                  borderRadius: 6,
-                  fontWeight: "bold",
-                  cursor: "pointer",
-                }}
-              >
+              <button onClick={handleMarkComplete} style={{ backgroundColor: "#04AA6D", color: "white", padding: "10px 18px", border: "none", borderRadius: 6, fontWeight: "bold", cursor: "pointer" }}>
                 ✅ Mark Task Complete & Leave Review
               </button>
             </div>

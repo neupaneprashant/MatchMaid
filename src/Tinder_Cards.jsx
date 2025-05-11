@@ -8,7 +8,6 @@ import { db, auth } from "./firebase";
 import { collection, getDocs, query, where, doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 
-// Card component
 function Card({ id, url, setCards, cards, handleSwipeRight }) {
   const x = useMotionValue(0);
   const rotateBase = useTransform(x, [-150, 150], [-18, 18]);
@@ -49,7 +48,6 @@ function Card({ id, url, setCards, cards, handleSwipeRight }) {
   );
 }
 
-// TinderCards Page
 function TinderCards() {
   const [cards, setCards] = useState([]);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -57,12 +55,11 @@ function TinderCards() {
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
-      if (user) setCurrentUser(user);
+      if (user) setCurrentUser({ userId: user.uid });
     });
     return () => unsub();
   }, []);
 
-  // TODO: Replace with real maid data later
   useEffect(() => {
     setCards([
       { id: "maid1", url: "IMG_0052.png" },
@@ -72,25 +69,25 @@ function TinderCards() {
     ]);
   }, []);
 
-  const handleSwipeRight = async (maidUid) => {
-    if (!currentUser || !maidUid) return;
+  const handleSwipeRight = async (maidUserId) => {
+    if (!currentUser || !maidUserId) return;
 
     try {
       const chatQuery = query(
         collection(db, "chats"),
-        where("users", "array-contains", currentUser.uid)
+        where("users", "array-contains", currentUser.userId)
       );
       const snapshot = await getDocs(chatQuery);
 
       const chatExists = snapshot.docs.some((doc) =>
-        doc.data().users.includes(maidUid)
+        doc.data().users.includes(maidUserId)
       );
 
       if (chatExists) return;
 
       const newChatRef = doc(collection(db, "chats"));
       await setDoc(newChatRef, {
-        users: [currentUser.uid, maidUid],
+        users: [currentUser.userId, maidUserId],
         createdAt: serverTimestamp(),
       });
     } catch (error) {
@@ -128,7 +125,6 @@ function TinderCards() {
               {...card}
               setCards={setCards}
               cards={cards}
-              currentUser={currentUser}
               handleSwipeRight={handleSwipeRight}
             />
           ))}

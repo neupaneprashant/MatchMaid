@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import './signup.css';
 import { auth, db } from './firebase';
 import { useNavigate } from 'react-router-dom';
@@ -27,6 +27,14 @@ function Signup({ defaultView = 'signup' }) {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const redirectBasedOnRole = (role) => {
+    if (role === 'maid') {
+      navigate('/maid-portal');
+    } else {
+      navigate('/home');
+    }
+  };
+
   const handleSignup = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -34,18 +42,13 @@ function Signup({ defaultView = 'signup' }) {
       const userCredential = await createUserWithEmailAndPassword(auth, form.email, form.password);
       await updateProfile(userCredential.user, { displayName: form.name });
       await setDoc(doc(db, 'users', userCredential.user.uid), {
-        uid: userCredential.user.uid,  // ✅ store UID explicitly
+        userId: userCredential.user.uid,
         name: form.name,
         email: form.email,
         role: form.role,
         createdAt: new Date(),
       });
-
-      if (form.role === 'maid') {
-        navigate('/maid-portal');
-      } else {
-        navigate('/home');
-      }
+      redirectBasedOnRole(form.role);
     } catch (error) {
       alert(error.message);
     } finally {
@@ -61,12 +64,7 @@ function Signup({ defaultView = 'signup' }) {
       const user = userCredential.user;
       const userDoc = await getDoc(doc(db, 'users', user.uid));
       const userData = userDoc.data();
-
-      if (userData?.role === 'maid') {
-        navigate('/maid-portal');
-      } else {
-        navigate('/home');
-      }
+      redirectBasedOnRole(userData?.role);
     } catch (error) {
       alert(error.message);
     } finally {
@@ -85,6 +83,7 @@ function Signup({ defaultView = 'signup' }) {
 
       if (!userDocSnap.exists()) {
         await setDoc(userDocRef, {
+          userId: user.uid,
           name: user.displayName || '',
           email: user.email,
           role: 'customer',
@@ -93,11 +92,7 @@ function Signup({ defaultView = 'signup' }) {
       }
 
       const userData = (await getDoc(userDocRef)).data();
-      if (userData.role === 'maid') {
-        navigate('/maid-portal');
-      } else {
-        navigate('/home');
-      }
+      redirectBasedOnRole(userData.role);
     } catch (error) {
       console.error('Google Sign-In Error:', error.message);
       alert(`Error: ${error.message}`);
@@ -117,6 +112,7 @@ function Signup({ defaultView = 'signup' }) {
 
       if (!userDocSnap.exists()) {
         await setDoc(userDocRef, {
+          userId: user.uid,
           name: user.displayName || '',
           email: user.email,
           role: 'customer',
@@ -125,11 +121,7 @@ function Signup({ defaultView = 'signup' }) {
       }
 
       const userData = (await getDoc(userDocRef)).data();
-      if (userData.role === 'maid') {
-        navigate('/maid-portal');
-      } else {
-        navigate('/home');
-      }
+      redirectBasedOnRole(userData.role);
     } catch (error) {
       console.error('Facebook Sign-In Error:', error.message);
       alert(`Error: ${error.message}`);
@@ -151,7 +143,6 @@ function Signup({ defaultView = 'signup' }) {
       alert(error.message);
     }
   };
-
   return (
     <div className="login-container">
       {loading && (
