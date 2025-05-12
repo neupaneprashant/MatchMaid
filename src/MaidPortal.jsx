@@ -30,8 +30,26 @@ function MaidPortal() {
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [sortOption, setSortOption] = useState('newest');
   const [maid, setMaid] = useState(null);
+  const [pendingBookings, setPendingBookings] = useState([]);
 
   const navigate = useNavigate();
+
+  const fetchPendingBookings = async (maidId) => {
+    const q = query(
+      collection(db, 'bookings'),
+      where('maidId', '==', maidId)
+    );
+    const snapshot = await getDocs(q);
+    const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    setPendingBookings(data);
+  };
+
+  const handleBookingStatus = async (bookingId, status) => {
+    await updateDoc(doc(db, 'bookings', bookingId), { status });
+    setPendingBookings(prev =>
+      prev.map(b => (b.id === bookingId ? { ...b, status } : b))
+    );
+  };
 
   useEffect(() => {
     const auth = getAuth();
@@ -74,6 +92,8 @@ function MaidPortal() {
           }));
           setMaidReviews(reviews);
         });
+
+        await fetchPendingBookings(user.uid);
       }
 
       setLoading(false);
@@ -124,6 +144,7 @@ function MaidPortal() {
           <button onClick={() => setView('dashboard')}>🏠 Overview</button>
           <button onClick={() => navigate('/maid-chat')}>💬 Go to Chat</button>
           <button onClick={() => setView('chart')}>📈 Earnings Chart</button>
+          <button onClick={() => setView('filter')}>✅ Approve Bookings</button>
           <button onClick={() => setView('calendar')}>📅 Manage Availability</button>
           <button onClick={() => setView('reviews')}>🗨️ View Reviews</button>
           <button onClick={() => navigate('/my-reviews')}>📝 My Reviews</button>
@@ -155,6 +176,93 @@ function MaidPortal() {
         )}
 
         {view === 'chart' && <EarningsChart earningsData={earningsData} />}
+
+        {view === 'filter' && (
+          <div style={{ color: '#111827' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: '600', marginBottom: '1rem' }}>
+              Pending Bookings
+            </h2>
+            {pendingBookings.length === 0 ? (
+              <p style={{ fontSize: '1rem' }}>No pending bookings</p>
+            ) : (
+              pendingBookings.map((booking) => (
+                <div
+                  key={booking.id}
+                  style={{
+                    border: '1px solid #ccc',
+                    padding: '1rem',
+                    marginBottom: '1rem',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    backgroundColor: '#f9fafb',
+                    color: '#111827',
+                  }}
+                >
+                  <div>
+                    <p><strong>Client ID:</strong> {booking.userId}</p>
+                    <p><strong>Scheduled:</strong> {new Date(booking.datetime).toLocaleString()}</p>
+                    <p><strong>Status:</strong> <span style={{ color: '#f59e0b' }}>{booking.status}</span></p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '1rem' }}>
+                    <button
+                      onClick={() => handleBookingStatus(booking.id, 'approved')}
+                      disabled={booking.status === 'rejected'}
+                      style={{
+                        backgroundColor:
+                          booking.status === 'approved'
+                            ? '#22c55e'
+                            : booking.status === 'rejected'
+                            ? '#d1d5db'
+                            : '#22c55e',
+                        color:
+                          booking.status === 'rejected'
+                            ? '#6b7280'
+                            : 'white',
+                        padding: '6px 12px',
+                        border: 'none',
+                        borderRadius: 5,
+                        cursor:
+                          booking.status === 'rejected'
+                            ? 'not-allowed'
+                            : 'pointer'
+                      }}
+                    >
+                      ✅ Approve
+                    </button>
+                    <button
+                      onClick={() => handleBookingStatus(booking.id, 'rejected')}
+                      disabled={booking.status === 'approved'}
+                      style={{
+                        backgroundColor:
+                          booking.status === 'rejected'
+                            ? '#ef4444'
+                            : booking.status === 'approved'
+                            ? '#d1d5db'
+                            : '#ef4444',
+                        color:
+                          booking.status === 'approved'
+                            ? '#6b7280'
+                            : 'white',
+                        padding: '6px 12px',
+                        border: 'none',
+                        borderRadius: 5,
+                        cursor:
+                          booking.status === 'approved'
+                            ? 'not-allowed'
+                            : 'pointer'
+                      }}
+                    >
+                      ❌ Reject
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
         {view === 'calendar' && (
           <div>
             <button onClick={() => navigate('/maid-schedule')}>🗓️ Create Schedule</button>
@@ -180,6 +288,7 @@ function MaidPortal() {
               </div>
             )}
 
+            {/* Reviews UI */}
             {sortReviews(maidReviews, sortOption).map((review) => (
               <div key={review.id} style={{
                 background: '#f1f5f9',
