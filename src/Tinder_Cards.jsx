@@ -1,14 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
-import ProfilePanel from "./ProfilePanel";
-import { FaUserCircle } from "react-icons/fa";
+import ProfilePanel from "./ProfilePanel"; 
+import { FaUserCircle } from "react-icons/fa"; 
 import "./Tinder_Cards.css";
 import PayPalButton from "./Pay_Pal";
-import { db, auth } from "./firebase";
-import { collection, getDocs, query, where, doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { onAuthStateChanged } from "firebase/auth";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "./firebase";
 
-function Card({ id, url, setCards, cards, handleSwipeRight }) {
+function Card({ id, photo, name, pay, range, setCards, cards }) {
   const x = useMotionValue(0);
   const rotateBase = useTransform(x, [-150, 150], [-18, 18]);
   const opacity = useTransform(x, [-150, 0, 150], [0, 1, 0]);
@@ -17,83 +16,67 @@ function Card({ id, url, setCards, cards, handleSwipeRight }) {
   const offset = isFront ? 0 : id % 2 ? 6 : -6;
   const rotate = useTransform(rotateBase, (r) => `${r + offset}deg`);
 
-  const handleDragEnd = async () => {
-    if (x.get() > 100) {
-      await handleSwipeRight(id);
-    }
-
+  const handleDragEnd = () => {
     if (Math.abs(x.get()) > 100) {
       setCards((prev) => prev.filter((card) => card.id !== id));
     }
   };
 
   return (
-    <motion.img
-      src={url}
-      alt="maid card"
+    <motion.div
       className="card"
       style={{
         x,
         rotate,
         opacity,
+        scale: isFront ? 0.9 : 0.85,
         boxShadow: isFront
           ? "0 20px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.5)"
           : undefined,
       }}
-      animate={{ scale: isFront ? 1 : 0.98 }}
+      animate={{ scale: isFront ? 0.9 : 0.85 }}
       drag={isFront ? "x" : false}
       dragConstraints={{ left: 0, right: 0 }}
       onDragEnd={handleDragEnd}
-    />
+    >
+      <img src={photo} alt="maid card" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "20px" }} />
+      <div className="cardtext">
+        <h3>{name}</h3>
+        <p>${pay}/hr — {range} mi range</p>
+      </div>
+    </motion.div>
   );
 }
 
 function TinderCards() {
   const [cards, setCards] = useState([]);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (user) => {
-      if (user) setCurrentUser({ userId: user.uid });
-    });
-    return () => unsub();
+    const fetchMaids = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "profiles"));
+        const maidProfiles = [];
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          if (data.photos?.length > 0) {
+            maidProfiles.push({
+              id: doc.id,
+              name: data.name || "Unnamed",
+              photo: data.photos[0],
+              pay: data.pay || 0,
+              range: data.range || 0
+            });
+          }
+        });
+        setCards(maidProfiles);
+      } catch (err) {
+        console.error("Error fetching profiles:", err);
+      }
+    };
+
+    fetchMaids();
   }, []);
-
-  useEffect(() => {
-    setCards([
-      { id: "maid1", url: "IMG_0052.png" },
-      { id: "maid2", url: "IMG_0054.jpg" },
-      { id: "maid3", url: "IMG_0057.jpg" },
-      { id: "maid4", url: "IMG_0059.jpg" },
-    ]);
-  }, []);
-
-  const handleSwipeRight = async (maidUserId) => {
-    if (!currentUser || !maidUserId) return;
-
-    try {
-      const chatQuery = query(
-        collection(db, "chats"),
-        where("users", "array-contains", currentUser.userId)
-      );
-      const snapshot = await getDocs(chatQuery);
-
-      const chatExists = snapshot.docs.some((doc) =>
-        doc.data().users.includes(maidUserId)
-      );
-
-      if (chatExists) return;
-
-      const newChatRef = doc(collection(db, "chats"));
-      await setDoc(newChatRef, {
-        users: [currentUser.userId, maidUserId],
-        createdAt: serverTimestamp(),
-      });
-    } catch (error) {
-      console.error("Error creating chat:", error);
-    }
-  };
 
   return (
     <>
@@ -120,13 +103,7 @@ function TinderCards() {
       <div className={`main-content ${profileOpen ? "shifted" : ""}`}>
         <div className="tinderCards__cardContainer">
           {cards.map((card) => (
-            <Card
-              key={card.id}
-              {...card}
-              setCards={setCards}
-              cards={cards}
-              handleSwipeRight={handleSwipeRight}
-            />
+            <Card key={card.id} {...card} setCards={setCards} cards={cards} />
           ))}
         </div>
       </div>
