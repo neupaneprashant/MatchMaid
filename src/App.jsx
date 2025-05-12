@@ -13,7 +13,11 @@ import ChatbaseIframe from './ChatbaseIframe'; // Replaces SupportPage
 import MaidPortal from './MaidPortal';
 import ProfilePage from './MaidPage';
 import HiredMaids from './HiredMaids';
-
+import HouseCleaning from './HouseCleaning';
+import BathroomCleaning from './BathroomCleaning';
+import KitchenCleaning from './KitchenCleaning';
+import PetsCleaning from './PetsCleaning';
+import OutdoorsCleaning from './OutdoorsCleaning';
 // CSS imports
 import './App.css';
 import './signup.css';
@@ -31,6 +35,15 @@ function App() {
           <Route path="/home" element={<TinderCards />} />
           <Route path="/chat" element={<ChatPage />} />
           <Route path="/tinder-shuffle/review" element={<ReviewSection />} />
+
+          
+          {/*Routes Related to services */}
+          <Route path="/services/house" element={<HouseCleaning />} />
+          <Route path="/services/pets" element={<PetsCleaning />} />
+          <Route path="/services/kitchen" element={<KitchenCleaning />} />
+          <Route path="/services/outdoors" element={<OutdoorsCleaning />} />
+          <Route path="/services/bathroom" element={<BathroomCleaning />} />
+
 
           {/* Navbar-related pages */}
           <Route path="/services" element={<ProductsPage />} />

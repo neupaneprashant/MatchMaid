@@ -35,13 +35,11 @@ export default function LandingPage() {
               <span className="menu-title">{t('Services')}</span>
               <div className="dropdown-content">
                 <div onClick={() => navigate('/services/house')}>House Cleaning</div>
-                <div onClick={() => navigate('/services/move-in-out')}>Move In & Move Out Cleaning</div>
-                <div onClick={() => navigate('/services/apartment')}>Apartment Cleaning</div>
-                <div onClick={() => navigate('/services/bedroom')}>Bedroom Cleaning</div>
-                <div onClick={() => navigate('/services/kitchen')}>Kitchen Cleaning</div>
-                <div onClick={() => navigate('/services/bathroom')}>Bathroom Cleaning</div>
-                <div onClick={() => navigate('/services/living-room')}>Living Room Cleaning</div>
-              </div>
+                <div onClick={() => navigate('/services/Pets')}>Pets Cleaning</div>
+                <div onClick={() => navigate('/services/Kitchen')}>Kitchen Cleaning</div>
+                <div onClick={() => navigate('/services/Outdoors')}>Outdoor Cleaning</div>
+                <div onClick={() => navigate('/services/Bathroom')}>Bathroom Cleaning</div>
+                </div>
             </li>
 
             <li style={{ cursor: 'pointer' }} onClick={() => navigate('/learn')}>
