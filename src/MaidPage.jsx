@@ -47,7 +47,8 @@ function ProfilePage() {
       languages,
       specs,
       schedule,
-      photos
+      photos,
+      userId: userCredential.user.uid,
     })
     alert("Profile saved!")
   }

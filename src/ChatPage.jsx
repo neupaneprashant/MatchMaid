@@ -28,6 +28,7 @@ function ChatPage() {
   const [dateTime, setDateTime] = useState("");
   const [messages, setMessages] = useState([]);
   const [hiredMaids, setHiredMaids] = useState([]);
+  const [userChats, setUserChats] = useState([]);
 
   const messagesEndRef = useRef(null);
   const navigate = useNavigate();
@@ -41,6 +42,7 @@ function ChatPage() {
           setUserRole(userDoc.data().role);
         }
         const unsubMaids = fetchHiredMaids(user.uid);
+        fetchUserChats(user.uid);
         return () => unsubMaids();
       }
     });
@@ -71,6 +73,24 @@ function ChatPage() {
       setHiredMaids(maids);
     });
     return unsub;
+  };
+
+  const fetchUserChats = async (userId) => {
+    const q = query(collection(db, "chats"), where("users", "array-contains", userId));
+    const snapshot = await getDocs(q);
+    const chats = await Promise.all(snapshot.docs.map(async (docSnap) => {
+      const data = docSnap.data();
+      const otherUserId = data.users.find((uid) => uid !== userId);
+      const otherUserDoc = await getDoc(doc(db, "users", otherUserId));
+      const otherUserData = otherUserDoc.exists() ? otherUserDoc.data() : {};
+      return {
+        chatId: docSnap.id,
+        userId: otherUserId,
+        name: otherUserData.name || "Unknown",
+        photoURL: otherUserData.photoURL || "https://i.pravatar.cc/150?img=11"
+      };
+    }));
+    setUserChats(chats);
   };
 
   const getOrCreateChat = async (otherUserId) => {
@@ -215,6 +235,28 @@ function ChatPage() {
                 <strong>{maid.name}</strong>
                 <p style={{ fontSize: "0.8rem", color: "#ddd" }}>
                   {maid.status} — {new Date(maid.datetime).toLocaleString()}
+                </p>
+              </div>
+            </div>
+          ))
+        )}
+
+        <h3 style={{ color: "#f9fafb", margin: "1rem 0 0.5rem" }}>Chats</h3>
+        {userChats.length === 0 ? (
+          <p style={{ color: "#ccc", fontSize: "0.9rem" }}>No chats yet</p>
+        ) : (
+          userChats.map((chat) => (
+            <div
+              key={chat.chatId}
+              onClick={() => handleSelectMaid({ maidId: chat.userId, name: chat.name, photoURL: chat.photoURL })}
+              className="chatPage__maidCard"
+              style={{ cursor: "pointer", marginBottom: "1rem", display: "flex", gap: "1rem", alignItems: "center" }}
+            >
+              <img src={chat.photoURL} alt={chat.name} style={{ width: 50, height: 50, borderRadius: "50%" }} />
+              <div>
+                <strong>{chat.name}</strong>
+                <p style={{ fontSize: "0.8rem", color: "#ddd" }}>
+                  Active chat
                 </p>
               </div>
             </div>
