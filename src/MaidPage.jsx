@@ -12,12 +12,16 @@ function ProfilePage() {
   const [pay, setPay] = useState(20);
   const [range, setRange] = useState(50);
   const [languages, setLanguages] = useState('');
+  const [location, setLocation] = useState(null);
+  const [photos, setPhotos] = useState([]);
+
   const [specs, setSpecs] = useState({
     pets: false,
     kitchen: false,
     outdoors: false,
     bathroom: false,
   });
+
   const [schedule, setSchedule] = useState({
     Mon: { active: false, start: '08:00', end: '16:00' },
     Tue: { active: false, start: '08:00', end: '16:00' },
@@ -27,34 +31,41 @@ function ProfilePage() {
     Sat: { active: false, start: '08:00', end: '16:00' },
     Sun: { active: false, start: '08:00', end: '16:00' },
   });
-  const [photos, setPhotos] = useState([]);
-  const [location, setLocation] = useState(null); // ✅ New
 
-  const toggleSpec = (key) => setSpecs(prev => ({ ...prev, [key]: !prev[key] }));
-  const toggleDay = (day) => setSchedule(prev => ({
-    ...prev,
-    [day]: { ...prev[day], active: !prev[day].active }
-  }));
-  const updateTime = (day, field, value) => setSchedule(prev => ({
-    ...prev,
-    [day]: { ...prev[day], [field]: value }
-  }));
+  const toggleSpec = (key) => {
+    setSpecs((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const toggleDay = (day) => {
+    setSchedule((prev) => ({
+      ...prev,
+      [day]: { ...prev[day], active: !prev[day].active },
+    }));
+  };
+
+  const updateTime = (day, field, value) => {
+    setSchedule((prev) => ({
+      ...prev,
+      [day]: { ...prev[day], [field]: value },
+    }));
+  };
 
   const handleGeolocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const { latitude, longitude } = pos.coords;
-          setLocation({ lat: latitude, lng: longitude });
-        },
-        (err) => {
-          console.error("Geolocation error:", err.message);
-          alert("Could not get location. Please allow location access.");
-        }
-      );
-    } else {
-      alert("Geolocation not supported by this browser.");
+    if (!navigator.geolocation) {
+      alert("Geolocation not supported.");
+      return;
     }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setLocation({ lat: latitude, lng: longitude });
+      },
+      (err) => {
+        console.error("Geolocation error:", err.message);
+        alert("Failed to get location.");
+      }
+    );
   };
 
   const saveProfile = async () => {
@@ -68,52 +79,71 @@ function ProfilePage() {
       specs,
       schedule,
       photos,
-      ...(location && { location }) // only include if available
+      ...(location && { location }),
     };
 
-    await setDoc(doc(db, "profiles", user.uid), profileData);
-    alert("Profile saved!");
+    try {
+      await setDoc(doc(db, "profiles", user.uid), profileData);
+
+      const updates = {};
+      if (photos.length > 0) updates.photoURL = photos[0];
+      if (name.trim()) updates.name = name;
+
+      if (Object.keys(updates).length > 0) {
+        await setDoc(doc(db, "users", user.uid), updates, { merge: true });
+      }
+
+      alert("Profile saved!");
+    } catch (err) {
+      console.error("Error saving profile:", err);
+      alert("Failed to save profile.");
+    }
   };
 
   const deleteAccount = async () => {
     if (!user) return alert("No user signed in.");
-    if (!window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) return;
+
+    if (!window.confirm("Are you sure you want to delete your account?")) {
+      return;
+    }
 
     try {
       await deleteDoc(doc(db, "profiles", user.uid));
       await deleteUser(user);
       alert("Account deleted successfully.");
       window.location.href = "/";
-    } catch (error) {
-      console.error("Error deleting account:", error);
-      alert(error.message || "Failed to delete account.");
+    } catch (err) {
+      console.error("Error deleting account:", err);
+      alert(err.message || "Failed to delete account.");
     }
   };
 
   const handlePhotoUpload = (e) => {
     const files = Array.from(e.target.files);
-    const readers = files.map(file => {
+    const readers = files.map((file) => {
       return new Promise((resolve) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result);
         reader.readAsDataURL(file);
       });
     });
-    Promise.all(readers).then(images => {
-      setPhotos(prev => [...prev, ...images]);
+
+    Promise.all(readers).then((images) => {
+      setPhotos((prev) => [...prev, ...images]);
     });
   };
 
   const removePhoto = (indexToRemove) => {
-    setPhotos(prev => prev.filter((_, index) => index !== indexToRemove));
+    setPhotos((prev) => prev.filter((_, index) => index !== indexToRemove));
   };
 
   useEffect(() => {
     const loadProfile = async () => {
       if (!user?.uid) return;
-      const docSnap = await getDoc(doc(db, "profiles", user.uid));
-      if (docSnap.exists()) {
-        const data = docSnap.data();
+
+      const snap = await getDoc(doc(db, "profiles", user.uid));
+      if (snap.exists()) {
+        const data = snap.data();
         setName(data.name || '');
         setPay(data.pay || 20);
         setRange(data.range || 50);
@@ -124,6 +154,7 @@ function ProfilePage() {
         setLocation(data.location || null);
       }
     };
+
     loadProfile();
   }, []);
 
