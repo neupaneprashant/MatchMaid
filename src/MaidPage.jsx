@@ -39,7 +39,10 @@ function ProfilePage() {
   const updateTime = (day, field, value) => setSchedule(prev => ({ ...prev, [day]: { ...prev[day], [field]: value } }))
 
   const saveProfile = async () => {
-    if (!user?.uid) return alert("User not signed in")
+  if (!user?.uid) return alert("User not signed in");
+
+  try {
+    // Save to "profiles" collection
     await setDoc(doc(db, "profiles", user.uid), {
       name,
       pay,
@@ -48,11 +51,25 @@ function ProfilePage() {
       specs,
       schedule,
       photos,
-      userId: userCredential.user.uid,
-    })
-    alert("Profile saved!")
-  }
+      userId: user.uid,
+    });
 
+    // ✅ Update "users" collection with photo and name (for chat, swipes, etc.)
+    const updates = {};
+    if (photos.length > 0) updates.photoURL = photos[0];
+    if (name.trim()) updates.name = name;
+
+    if (Object.keys(updates).length > 0) {
+      await setDoc(doc(db, "users", user.uid), updates, { merge: true });
+    }
+
+    alert("Profile saved!");
+  } catch (err) {
+    console.error("Error saving profile:", err);
+    alert("Failed to save profile.");
+  }
+  }
+  
   const deleteAccount = async () => {
     if (!user) return alert("No user signed in.");
   

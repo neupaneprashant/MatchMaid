@@ -4,10 +4,48 @@ import ProfilePanel from "./ProfilePanel";
 import { FaUserCircle } from "react-icons/fa"; 
 import "./Tinder_Cards.css";
 import PayPalButton from "./Pay_Pal";
-import { collection, getDocs } from "firebase/firestore";
 import { db } from "./firebase";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  getDoc,
+  setDoc,
+  doc,
+  serverTimestamp
+} from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 
-function Card({ id, photo, name, pay, range, setCards, cards }) {
+const createChatWithMaid = async (maidId) => {
+  const auth = getAuth();
+  const currentUser = auth.currentUser;
+  if (!currentUser) return;
+
+  try {
+    const q = query(
+      collection(db, "chats"),
+      where("users", "array-contains", currentUser.uid)
+    );
+    const snapshot = await getDocs(q);
+
+    for (let docSnap of snapshot.docs) {
+      const data = docSnap.data();
+      if (data.users.includes(maidId)) return; // Chat already exists
+    }
+
+    const newChatRef = doc(collection(db, "chats"));
+    await setDoc(newChatRef, {
+      users: [currentUser.uid, maidId],
+      createdAt: serverTimestamp(),
+    });
+    console.log("New chat created between:", currentUser.uid, "and", maidId);
+  } catch (err) {
+    console.error("Failed to create chat:", err);
+  }
+};
+
+function Card({ id, photo, name, pay, range, setCards, cards, onMatch }) {
   const x = useMotionValue(0);
   const rotateBase = useTransform(x, [-150, 150], [-18, 18]);
   const opacity = useTransform(x, [-150, 0, 150], [0, 1, 0]);
@@ -17,7 +55,13 @@ function Card({ id, photo, name, pay, range, setCards, cards }) {
   const rotate = useTransform(rotateBase, (r) => `${r + offset}deg`);
 
   const handleDragEnd = () => {
-    if (Math.abs(x.get()) > 100) {
+    const swipeDistance = x.get();
+
+    if (swipeDistance > 100) {
+      onMatch(id); // ✅ delegate to parent
+    }
+
+    if (Math.abs(swipeDistance) > 100) {
       setCards((prev) => prev.filter((card) => card.id !== id));
     }
   };
@@ -25,15 +69,7 @@ function Card({ id, photo, name, pay, range, setCards, cards }) {
   return (
     <motion.div
       className="card"
-      style={{
-        x,
-        rotate,
-        opacity,
-        scale: isFront ? 0.9 : 0.85,
-        boxShadow: isFront
-          ? "0 20px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.5)"
-          : undefined,
-      }}
+      style={{ x, rotate, opacity, scale: isFront ? 0.9 : 0.85 }}
       animate={{ scale: isFront ? 0.9 : 0.85 }}
       drag={isFront ? "x" : false}
       dragConstraints={{ left: 0, right: 0 }}
@@ -53,30 +89,41 @@ function TinderCards() {
   const [profileOpen, setProfileOpen] = useState(false);
 
   useEffect(() => {
-    const fetchMaids = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, "profiles"));
-        const maidProfiles = [];
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          if (data.photos?.length > 0) {
-            maidProfiles.push({
-              id: doc.id,
-              name: data.name || "Unnamed",
-              photo: data.photos[0],
-              pay: data.pay || 0,
-              range: data.range || 0
-            });
-          }
-        });
-        setCards(maidProfiles);
-      } catch (err) {
-        console.error("Error fetching profiles:", err);
-      }
-    };
+  const fetchMaids = async () => {
+  try {
+    const profileSnapshot = await getDocs(collection(db, "profiles"));
+    const maidProfiles = [];
 
-    fetchMaids();
-  }, []);
+    for (const docSnap of profileSnapshot.docs) {
+      const profileData = docSnap.data();
+      const uid = docSnap.id;
+
+      // Fetch corresponding user document
+      const userDoc = await getDoc(doc(db, "users", uid));
+      const userData = userDoc.exists() ? userDoc.data() : null;
+
+      const isMaid = userData?.role === "maid";
+      const hasPhotos = Array.isArray(profileData.photos) && profileData.photos.length > 0;
+
+      if (isMaid && hasPhotos) {
+        maidProfiles.push({
+          id: uid,
+          name: profileData.name || userData.name || "Unnamed",
+          photo: profileData.photos[0],
+          pay: profileData.pay || 0,
+          range: profileData.range || 0,
+        });
+      }
+    }
+    console.log("✅ Maid profiles to show:", maidProfiles);
+    setCards(maidProfiles);
+  } catch (err) {
+    console.error("Error fetching maid profiles with user roles:", err);
+  }
+};
+
+  fetchMaids();
+}, []);
 
   return (
     <>
@@ -103,7 +150,7 @@ function TinderCards() {
       <div className={`main-content ${profileOpen ? "shifted" : ""}`}>
         <div className="tinderCards__cardContainer">
           {cards.map((card) => (
-            <Card key={card.id} {...card} setCards={setCards} cards={cards} />
+            <Card key={card.id} {...card} setCards={setCards} cards={cards}  onMatch={createChatWithMaid}/>
           ))}
         </div>
       </div>
