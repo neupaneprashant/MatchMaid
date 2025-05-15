@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import './ProfilePanel.css';
 import React from 'react';
+import { useNavigate } from 'react-router-dom'; // ✅ Import this
 
 function ProfilePanel({ open, setOpen, onFilterChange }) {
   const [range, setRange] = useState(50);
@@ -13,6 +14,8 @@ function ProfilePanel({ open, setOpen, onFilterChange }) {
     bathroom: false,
   });
   const [location, setLocation] = useState(null);
+
+  const navigate = useNavigate(); // ✅ Initialize navigate
 
   const toggleSpec = (key) => {
     setSpecs((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -91,7 +94,8 @@ function ProfilePanel({ open, setOpen, onFilterChange }) {
         value={languages}
         onChange={(e) => setLanguages(e.target.value)}
       />
-
+      <br /><br />
+      <button onClick={() => navigate('/chat')}>Chat</button>
       <br /><br />
       <button onClick={handleGeolocation}>Use My Location</button>
       <br /><br />

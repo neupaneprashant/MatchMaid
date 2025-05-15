@@ -37,7 +37,7 @@
 }
 
 .language-btn, .login-btn {
-  border: none;
+  border:#ec4899;
   background: white;
   color: black;
   padding: 0.4rem 1rem;
@@ -45,15 +45,19 @@
   border-radius: 9999px;
   font-weight: 600;
   cursor: pointer;
+  width: 200px;
+  height: 50px;
+  margin: 0 auto;
+  vertical-align: middle
 }
 
-.language-btn {
-  background: transparent;
-  color: white;
+.language-btn:hover {
+  background: #fda5d4;
 }
 
 .login-btn:hover {
-  background: #e5e7eb;
+  background: #fc82c5;
+  
 }
 
 /* Hero Section */

@@ -55,7 +55,7 @@ body {
 }
 
 .social-icons .icon i {
-    color: white;
+    color: rgb(246, 198, 232);
     font-size: 20px;
 }
 
@@ -168,9 +168,9 @@ a:hover {
   }
   
   .role-button.active {
-    background-color: #04AA6D;
+    background-color: #2fb4f2b0;
     color: white;
-    border-color: #04AA6D;
+    border-color: #0417aacd;
   }
   
   .role-button:hover {

@@ -57,8 +57,7 @@ export default function LandingPage() {
           </ul>
 
           <div className="nav-actions">
-            <button className="language-btn" onClick={toggleLanguage}>
-              🌐 {t('language')}
+            <button className="language-btn" onClick={toggleLanguage}>{t('language')} 🌐
             </button>
             <button className="login-btn" onClick={() => openModal('login')}>
               {t('login')}

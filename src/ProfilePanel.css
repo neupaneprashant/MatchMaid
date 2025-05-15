@@ -61,13 +61,14 @@
 }
 
 .spec-pill:hover {
-  border-color: #04AA6D;
+  border-color: #000000;
+  background-color: rgba(135, 215, 255, 0.38);
 }
 
 .spec-pill.active {
-  background-color: #04AA6D;
+  background-color: #66e0f99c;
   color: white;
-  border-color: #04AA6D;
+  border-color: #ffffff;
 }
 
 .profile-panel {
