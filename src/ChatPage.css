@@ -144,3 +144,31 @@
   border-radius: 8px;
   padding: 6px;
 }
+.chatPage__messagesWithBlock {
+  position: relative;
+}
+
+.chatPage__blockButton {
+  position: absolute;
+  top: 0;
+  right: 0px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  padding: 8px 12px;
+  color: #f87171;
+  cursor: pointer;
+  z-index: 10;
+  transition: transform 0.2s ease;
+}
+
+.chatPage__blockButton:hover {
+  transform: scale(1.1);
+  color: #dc2626;
+  background: none;
+}
+
+.chatPage__blockButton:focus {
+  outline: none;         
+  box-shadow: none;       
+}

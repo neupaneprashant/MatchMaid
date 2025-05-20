@@ -61,14 +61,13 @@
 }
 
 .spec-pill:hover {
-  border-color: #000000;
-  background-color: rgba(135, 215, 255, 0.38);
+  border-color: #04AA6D;
 }
 
 .spec-pill.active {
-  background-color: #66e0f99c;
+  background-color: #04AA6D;
   color: white;
-  border-color: #ffffff;
+  border-color: #04AA6D;
 }
 
 .profile-panel {
@@ -76,11 +75,10 @@
   top: 0;
   left: -400px;  /* Slide from left */
   width: 300px;
-  height: 95vh;
+  height: 100vh;
   background-color: #333;
   color: white;
   padding: 2rem;
-  padding-left: 4rem;
   box-shadow: 2px 0 5px rgba(0,0,0,0.5);
   transition: left 0.3s ease;
   z-index: 1000;
@@ -93,4 +91,48 @@
 .profile-panel.open {
   left: 0;
 }
+
+.favorites-dropdown {
+  position: relative;
+  display: inline-block;
+  margin-top: 1rem;
+}
+
+.favorites-button {
+  padding: 0.5rem 1rem;
+  background-color: gold;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.favorites-popup {
+  display: none;
+  position: absolute;
+  top: 120%;
+  left: 0;
+  background-color: white;
+  color: black;
+  border: 1px solid #ddd;
+  padding: 10px;
+  border-radius: 8px;
+  min-width: 200px;
+  z-index: 1000;
+}
+
+.favorites-dropdown:hover .favorites-popup {
+  display: block;
+}
+
+.maid-link {
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 4px;
+}
+
+.maid-link:hover {
+  background-color: #f0f0f0;
+}
+
 

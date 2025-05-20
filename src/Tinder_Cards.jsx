@@ -16,8 +16,8 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
+import { addToFavorites } from "./favorites";
 
-// 🔁 Haversine distance formula
 function getDistanceInMiles(lat1, lon1, lat2, lon2) {
   const R = 3958.8;
   const dLat = (lat2 - lat1) * (Math.PI / 180);
@@ -31,7 +31,6 @@ function getDistanceInMiles(lat1, lon1, lat2, lon2) {
   return R * c;
 }
 
-// 🔁 Create chat between current user and maid
 const createChatWithMaid = async (maidId) => {
   const auth = getAuth();
   const currentUser = auth.currentUser;
@@ -60,7 +59,6 @@ const createChatWithMaid = async (maidId) => {
   }
 };
 
-// 🔁 Card component
 function Card({
   id,
   photo,
@@ -86,12 +84,11 @@ function Card({
   const handleDragEnd = () => {
     const swipeDistance = x.get();
 
-    if (swipeDistance > 100 && onMatch) {
-      onMatch(id);
-    }
+    if (swipeDistance > 100) onMatch?.(id);
 
     if (Math.abs(swipeDistance) > 100) {
-      setCards((prev) => prev.filter((card) => card.id !== id));
+      const next = cards.filter((card) => card.id !== id);
+      setCards(next);
     }
   };
 
@@ -132,7 +129,20 @@ function Card({
           borderRadius: "20px",
         }}
       />
-      <div className="cardtext">
+      <div
+        className="cardtext"
+        style={{
+          background: "rgba(0, 0, 0, 0.45)",
+          color: "white",
+          padding: "20px",
+          backdropFilter: "blur(4px)",
+          width: "100%",
+          boxSizing: "border-box",
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+        }}
+      >
         <h3>{name}</h3>
         <p>${pay}/hr — {range} mi range</p>
         <p>{languages}</p>
@@ -142,9 +152,11 @@ function Card({
   );
 }
 
-// 🔁 Main component
 function TinderCards() {
   const [cards, setCards] = useState([]);
+  const [topCardId, setTopCardId] = useState(null);
+  const [swipedCards, setSwipedCards] = useState([]);
+  const [favoritedMaids, setFavoritedMaids] = useState([]);
   const [profileOpen, setProfileOpen] = useState(false);
   const [filters, setFilters] = useState({
     range: 50,
@@ -168,8 +180,7 @@ function TinderCards() {
           const userData = userDoc.exists() ? userDoc.data() : null;
 
           const isMaid = userData?.role === "maid";
-          const hasPhotos =
-            Array.isArray(profileData.photos) && profileData.photos.length > 0;
+          const hasPhotos = Array.isArray(profileData.photos) && profileData.photos.length > 0;
 
           if (isMaid && hasPhotos) {
             maidProfiles.push({
@@ -185,45 +196,82 @@ function TinderCards() {
           }
         }
 
-        console.log("✅ Maid profiles to show:", maidProfiles);
         setCards(maidProfiles);
       } catch (err) {
-        console.error("❌ Error fetching maid profiles:", err);
+        console.error("Error fetching maids:", err);
       }
     };
 
     fetchMaids();
   }, []);
 
-  const applyFilters = (maids) => {
-    return maids.filter((maid) => {
-      const specMatch = Object.entries(filters.specs).every(
-        ([key, val]) => (val ? maid.specs?.[key] : true)
-      );
+  useEffect(() => {
+    if (cards.length > 0) {
+      setTopCardId(cards[cards.length - 1].id);
+    }
+  }, [cards]);
 
-      const langMatch =
-        !filters.languages ||
-        maid.languages
-          ?.toLowerCase()
-          .includes(filters.languages.toLowerCase());
+  const handleFavorite = async (maidId) => {
+    const user = getAuth().currentUser;
+    if (!user || !maidId) return;
 
-      const payMatch = maid.pay >= filters.pay;
-
-      const distanceMatch =
-        filters.location && maid.location
-          ? getDistanceInMiles(
-              filters.location.lat,
-              filters.location.lng,
-              maid.location.lat,
-              maid.location.lng
-            ) <= filters.range
-          : true;
-
-      return specMatch && langMatch && payMatch && distanceMatch;
-    });
+    try {
+      await addToFavorites(user.uid, maidId);
+      setFavoritedMaids((prev) => [...new Set([...prev, maidId])]);
+    } catch (err) {
+      console.error("Favorite failed:", err);
+    }
   };
 
-  const filteredCards = applyFilters(cards);
+  const handleLike = async () => {
+    if (!topCardId) return;
+    await createChatWithMaid(topCardId);
+    const next = cards.filter((c) => c.id !== topCardId);
+    setCards(next);
+    setTopCardId(next[next.length - 1]?.id || null);
+  };
+
+  const handleDislike = () => {
+    if (!topCardId) return;
+    const swiped = cards.find((c) => c.id === topCardId);
+    const next = cards.filter((c) => c.id !== topCardId);
+    setSwipedCards((prev) => [...prev, swiped]);
+    setCards(next);
+    setTopCardId(next[next.length - 1]?.id || null);
+  };
+
+  const handleRewind = () => {
+    if (swipedCards.length === 0) return;
+    const last = swipedCards[swipedCards.length - 1];
+    const remaining = swipedCards.slice(0, -1);
+    setCards((prev) => [...prev, last]);
+    setSwipedCards(remaining);
+    setTopCardId(last.id);
+  };
+
+  const filteredCards = cards.filter((maid) => {
+    const specMatch = Object.entries(filters.specs).every(
+      ([key, val]) => (val ? maid.specs?.[key] : true)
+    );
+
+    const langMatch =
+      !filters.languages ||
+      maid.languages?.toLowerCase().includes(filters.languages.toLowerCase());
+
+    const payMatch = maid.pay >= filters.pay;
+
+    const distanceMatch =
+      filters.location && maid.location
+        ? getDistanceInMiles(
+            filters.location.lat,
+            filters.location.lng,
+            maid.location.lat,
+            maid.location.lng
+          ) <= filters.range
+        : true;
+
+    return specMatch && langMatch && payMatch && distanceMatch;
+  });
 
   return (
     <>
@@ -265,17 +313,18 @@ function TinderCards() {
               />
             ))
           ) : (
-            <div
-              style={{
-                textAlign: "center",
-                color: "#666",
-                marginTop: "2rem",
-              }}
-            >
+            <div style={{ textAlign: "center", color: "#666", marginTop: "2rem" }}>
               <p>No maids match your filters.</p>
             </div>
           )}
         </div>
+      </div>
+
+      <div className="actionBar">
+        <button onClick={handleRewind}>⟲</button>
+        <button onClick={handleDislike}>❌</button>
+        <button onClick={() => handleFavorite(topCardId)}>⭐</button>
+        <button onClick={handleLike}>❤️</button>
       </div>
     </>
   );

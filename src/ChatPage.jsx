@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import Chat from "./Chat";
 import "./ChatPage.css";
+import { blockUser, isUserBlocked } from './Block';
 import { useNavigate } from "react-router-dom";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth, db } from "./firebase";
@@ -22,13 +23,14 @@ import {
 function ChatPage() {
   const [currentUser, setCurrentUser] = useState(null);
   const [userRole, setUserRole] = useState(null);
-  const [selectedUser, setSelectedUser] = useState(null);
   const [messageInput, setMessageInput] = useState("");
   const [chatId, setChatId] = useState(null);
   const [dateTime, setDateTime] = useState("");
   const [messages, setMessages] = useState([]);
   const [hiredMaids, setHiredMaids] = useState([]);
   const [userChats, setUserChats] = useState([]);
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   const messagesEndRef = useRef(null);
   const navigate = useNavigate();
@@ -144,14 +146,29 @@ function ChatPage() {
 
   const handleSendMessage = async () => {
     if (!messageInput.trim() || !selectedUser || !chatId) return;
-
+  
+    const currentUserId = currentUser.userId;
+    const otherUserId = selectedUser.maidId;
+  
+    // 🔍 Check if this user is blocked by the other
+    const otherUserDoc = await getDoc(doc(db, "users", otherUserId));
+    const otherBlockedList = otherUserDoc.exists() ? otherUserDoc.data().blockedMaids || [] : [];
+  
+    // 🔒 Prevent sending if either side blocked the other
+    if (isBlocked || otherBlockedList.includes(currentUserId)) {
+      alert("Communication blocked. Unblock to resume messaging.");
+      return;
+    }
+  
     await addDoc(collection(db, "chats", chatId, "messages"), {
-      senderId: currentUser.userId,
+      senderId: currentUserId,
       text: messageInput,
       createdAt: serverTimestamp(),
     });
+  
     setMessageInput("");
   };
+  
 
   const handleHireMaid = async () => {
     if (!selectedUser || !currentUser || !dateTime) {
@@ -205,6 +222,31 @@ function ChatPage() {
     }
   };
 
+  const handleToggleBlock = async () => {
+    try {
+      const result = await blockUser(selectedUser.maidId, currentUser.userId);
+      setIsBlocked(result);
+      alert(result ? "User has been blocked." : "User has been unblocked.");
+    } catch (err) {
+      alert("Failed to toggle block status.");
+      console.error(err);
+    }
+  };
+  
+  useEffect(() => {
+    const checkIfBlocked = async () => {
+      if (!currentUser || !selectedUser?.maidId) return;
+  
+      try {
+        const blocked = await isUserBlocked(currentUser.userId, selectedUser.maidId);
+        setIsBlocked(blocked);
+      } catch (err) {
+        console.error("Failed to check block status:", err);
+      }
+    };
+  
+    checkIfBlocked();
+  }, [selectedUser]);
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -283,24 +325,34 @@ function ChatPage() {
       <div className="chatPage__chatWindow">
         {selectedUser ? (
           <>
-            <div className="chatPage__messages">
-              <h2>Chat with {selectedUser.name}</h2>
-              {messages.map((msg, index) => {
-                const isSent = msg.senderId === currentUser.userId;
-                const timestamp = msg.createdAt?.toDate ? new Date(msg.createdAt.toDate()).toLocaleString() : "";
+<div className="chatPage__messages chatPage__messagesWithBlock">
+  <h2>Chat with {selectedUser.name}</h2>
 
-                return (
-                  <div
-                    key={msg.id || index}
-                    className={`chatPage__messageWrapper ${isSent ? "sent" : "received"}`}
-                  >
-                    <p className={`chatPage__message ${isSent ? "sent" : "received"}`}>{msg.text}</p>
-                    <span className={`chatPage__timestamp ${isSent ? "sent" : "received"}`}>{timestamp}</span>
-                  </div>
-                );
-              })}
-              <div ref={messagesEndRef} />
-            </div>
+  <button
+  className="chatPage__blockButton"
+  onClick={handleToggleBlock}
+  title={isBlocked ? "Unblock" : "Block"}
+>
+  {isBlocked ? "✅" : "🚫"}
+</button>
+
+  {messages.map((msg, index) => {
+    const isSent = msg.senderId === currentUser.userId;
+    const timestamp = msg.createdAt?.toDate ? new Date(msg.createdAt.toDate()).toLocaleString() : "";
+
+    return (
+      <div
+        key={msg.id || index}
+        className={`chatPage__messageWrapper ${isSent ? "sent" : "received"}`}
+      >
+        <p className={`chatPage__message ${isSent ? "sent" : "received"}`}>{msg.text}</p>
+        <span className={`chatPage__timestamp ${isSent ? "sent" : "received"}`}>{timestamp}</span>
+      </div>
+    );
+  })}
+  <div ref={messagesEndRef} />
+</div>
+
 
             <div className="chatPage__inputContainer">
               <input
