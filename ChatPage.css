@@ -1,0 +1,174 @@
+.chatPage {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  color: white;
+  background-color: #1a1a1a;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+/* Sidebar */
+.chatPage__sidebar {
+  width: 30%;
+  border-right: 1px solid #333;
+  padding: 10px;
+  overflow-y: auto;
+  background-color: #262626;
+}
+
+.chatPage__sidebar h2 {
+  margin-bottom: 20px;
+}
+
+/* Chat window */
+.chatPage__chatWindow {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+/* Messages area */
+.chatPage__messages {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 1rem;
+}
+
+.chatPage__messageWrapper {
+  display: flex;
+  flex-direction: column;
+  max-width: 70%;
+  margin-bottom: 0.75rem;
+}
+
+.chatPage__messageWrapper.sent {
+  align-self: flex-end;
+  text-align: right;
+}
+
+.chatPage__messageWrapper.received {
+  align-self: flex-start;
+  text-align: left;
+}
+
+.chatPage__message {
+  padding: 10px 14px;
+  border-radius: 12px;
+  word-wrap: break-word;
+  font-size: 0.95rem;
+}
+
+.chatPage__message.sent {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.chatPage__message.received {
+  background-color: #e5e7eb;
+  color: #111827;
+}
+
+.chatPage__timestamp {
+  font-size: 0.75rem;
+  color: #999;
+  margin-top: 4px;
+  padding: 0 6px;
+}
+
+.chatPage__inputContainer {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin-top: 10px;
+  gap: 10px;
+}
+
+.chatPage__input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 1px solid #555;
+  border-radius: 9999px;
+  background-color: #000000;
+  color: white;
+  font-size: 16px;
+}
+
+
+.chatPage__sendButton {
+  padding: 10px 24px;
+  border-radius: 9999px;
+  background-color: #ff5a5f;
+  border: none;
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chatPage__sendButton:hover {
+  background-color: #e14b4f;
+}
+
+.chatPage__sendButton:hover {
+  background-color: #e14b4f;
+}
+
+/* Utility Buttons */
+.chatPage__logoutButton,
+.chatPage__backButton {
+  padding: 10px;
+  margin-bottom: 10px;
+  background-color: #374151;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.chatPage__logoutButton:hover,
+.chatPage__backButton:hover {
+  background-color: #4b5563;
+}
+
+/* Maid card style */
+.chatPage__maidCard.selected {
+  background-color: #444;
+  border-radius: 8px;
+  padding: 6px;
+}
+.chatPage__messagesWithBlock {
+  position: relative;
+}
+
+.chatPage__blockButton {
+  position: absolute;
+  top: 0;
+  right: 0px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  padding: 8px 12px;
+  color: #f87171;
+  cursor: pointer;
+  z-index: 10;
+  transition: transform 0.2s ease;
+}
+
+.chatPage__blockButton:hover {
+  transform: scale(1.1);
+  color: #dc2626;
+  background: none;
+}
+
+.chatPage__blockButton:focus {
+  outline: none;         
+  box-shadow: none;       
+}
