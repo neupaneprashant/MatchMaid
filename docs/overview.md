@@ -11,7 +11,15 @@
 - [👥 User Roles & Authentication](#-user-roles--authentication)
 - [🔄 Main App Flow](#-main-app-flow)
 - [🧩 Component Overview](#-component-overview)
-- [🗂️ Firestore Structure](#-firestore-structure)
+  - [Signup Component](signup.md)
+  - [Landing Page](landing-page.md)
+  - [Maid Portal](maidportal.md)
+  - [Maid Rating Analytics](maidratinganalytics.md)
+  - [MyReviews Component](myreviews.md)
+  - [PayPalButton](paypalbutton.md)
+  - [Maid Date Picker](date-picker.md)
+  - [Earnings Chart](earnings-chart.md)
+- [🗂️ Firestore Structure](database-schema.md)
 - [🔐 Security Rules](#-security-rules)
 - [🔔 Notifications](#-notifications)
 - [🚀 Future Improvements](#-future-improvements)
@@ -36,3 +44,4 @@ git clone https://github.com/neupaneprashant/MatchMaid.git
 cd MatchMaid
 npm install
 npm run dev
+```
