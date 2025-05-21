@@ -160,6 +160,8 @@ function ProfilePanel({ open, setOpen, onFilterChange }) {
       <br /><br />
       <button onClick={handleGeolocation}>📍 Use My Location</button>
       <br /><br />
+
+      <button onClick ={() => navigate("/chat")}> Chat </button>
       <button onClick={resetFilters} style={{ backgroundColor: '#999' }}>
         Reset Filters
       </button>
