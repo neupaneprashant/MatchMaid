@@ -252,6 +252,7 @@ function ProfilePanel({ open, setOpen }) {
 
       <br />
       <button onClick={saveProfile}>Save Profile</button>
+      <button onClick={()=> navigate("/chat")}> Chat </button>
       <button style={{ marginLeft: '1rem' }} onClick={checkProfileInConsole}>🔍 Check Profile in Console</button>
       <br /><br />
       <button
