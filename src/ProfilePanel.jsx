@@ -12,7 +12,8 @@ function ProfilePanel({ open, setOpen, onFilterChange }) {
 
   const [user, setUser] = useState(null);
   const [name, setName] = useState('');
-  const [pay, setPay] = useState(0);
+  const [minPay, setMinPay] = useState(0);
+  const [maxPay, setMaxPay] = useState(100);
   const [range, setRange] = useState(50);
   const [languages, setLanguages] = useState('');
   const [favoriteMaids, setFavoriteMaids] = useState([]);
@@ -69,9 +70,16 @@ function ProfilePanel({ open, setOpen, onFilterChange }) {
 
   useEffect(() => {
     if (onFilterChange) {
-      onFilterChange({ range, specs, languages, pay, location });
+      onFilterChange({
+        range,
+        specs,
+        languages,
+        minPay,
+        maxPay,
+        location,
+      });
     }
-  }, [range, specs, languages, pay, location]);
+  }, [range, specs, languages, minPay, maxPay, location]);
 
   const toggleSpec = (key) => {
     setSpecs((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -79,7 +87,8 @@ function ProfilePanel({ open, setOpen, onFilterChange }) {
 
   const resetFilters = () => {
     setRange(50);
-    setPay(0);
+    setMinPay(0);
+    setMaxPay(100);
     setLanguages('');
     setSpecs({
       pets: false,
@@ -119,12 +128,23 @@ function ProfilePanel({ open, setOpen, onFilterChange }) {
         onChange={(e) => setLanguages(e.target.value)}
       />
 
-      <p><strong>Minimum Hourly Pay ($):</strong></p>
-      <input
-        type="number"
-        value={pay}
-        onChange={(e) => setPay(Number(e.target.value))}
-      />
+      <p><strong>Hourly Pay Range ($):</strong></p>
+      <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <input
+          type="number"
+          value={minPay}
+          min={0}
+          onChange={(e) => setMinPay(Number(e.target.value))}
+          placeholder="Min"
+        />
+        <input
+          type="number"
+          value={maxPay}
+          min={0}
+          onChange={(e) => setMaxPay(Number(e.target.value))}
+          placeholder="Max"
+        />
+      </div>
 
       <p><strong>Work Specifications:</strong></p>
       {Object.keys(specs).map((key) => (

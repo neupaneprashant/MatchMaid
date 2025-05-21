@@ -12,6 +12,7 @@ function ProfilePage() {
   const [pay, setPay] = useState(20);
   const [range, setRange] = useState(50);
   const [languages, setLanguages] = useState('');
+  const [bio, setBio] = useState('');
   const [location, setLocation] = useState(null);
   const [photos, setPhotos] = useState([]);
 
@@ -76,6 +77,7 @@ function ProfilePage() {
       pay,
       range,
       languages,
+      bio,
       specs,
       schedule,
       photos,
@@ -148,6 +150,7 @@ function ProfilePage() {
         setPay(data.pay || 20);
         setRange(data.range || 50);
         setLanguages(data.languages || '');
+        setBio(data.bio || '');
         setSpecs(data.specs || specs);
         setSchedule(data.schedule || schedule);
         setPhotos(data.photos || []);
@@ -208,7 +211,20 @@ function ProfilePage() {
       ))}
 
       <label>Languages Spoken (optional):</label>
-      <input type="text" placeholder="e.g. English, Spanish" value={languages} onChange={(e) => setLanguages(e.target.value)} />
+      <input
+        type="text"
+        placeholder="e.g. English, Spanish"
+        value={languages}
+        onChange={(e) => setLanguages(e.target.value)}
+      />
+
+      <label>Bio:</label>
+      <textarea
+        value={bio}
+        onChange={(e) => setBio(e.target.value)}
+        rows={4}
+        style={{ width: '100%' }}
+      />
 
       <label>Upload Photos:</label>
       <input type="file" multiple onChange={handlePhotoUpload} accept="image/*" />

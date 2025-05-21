@@ -76,3 +76,8 @@
   transform: scale(1.2);
   color: gold;
 }
+
+.actionBar button:focus {
+  outline: none;
+  box-shadow: none;
+}

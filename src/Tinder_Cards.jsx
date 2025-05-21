@@ -13,9 +13,12 @@ import {
   getDoc,
   setDoc,
   doc,
+  updateDoc,
   serverTimestamp,
+  arrayUnion,
+  arrayRemove,
 } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { addToFavorites } from "./favorites";
 
 function getDistanceInMiles(lat1, lon1, lat2, lon2) {
@@ -53,9 +56,29 @@ const createChatWithMaid = async (maidId) => {
       users: [currentUser.uid, maidId],
       createdAt: serverTimestamp(),
     });
-    console.log("✅ New chat created between:", currentUser.uid, "and", maidId);
   } catch (err) {
     console.error("❌ Failed to create chat:", err);
+  }
+};
+
+const saveSwipeToFirestore = async (userId, maidId) => {
+  const swipeRef = doc(db, "swipes", userId);
+  const swipeDoc = await getDoc(swipeRef);
+
+  if (swipeDoc.exists()) {
+    await updateDoc(swipeRef, { swiped: arrayUnion(maidId) });
+  } else {
+    await setDoc(swipeRef, { swiped: [maidId] });
+  }
+};
+
+const removeSwipeFromFirestore = async (userId, maidId) => {
+  try {
+    await updateDoc(doc(db, "swipes", userId), {
+      swiped: arrayRemove(maidId),
+    });
+  } catch (err) {
+    console.error("Error removing swipe:", err);
   }
 };
 
@@ -67,11 +90,12 @@ function Card({
   range,
   specs,
   languages,
+  bio,
   location,
   userLocation,
   setCards,
   cards,
-  onMatch,
+  updateSwipedMaids,
 }) {
   const x = useMotionValue(0);
   const rotateBase = useTransform(x, [-150, 150], [-18, 18]);
@@ -81,14 +105,15 @@ function Card({
   const offset = isFront ? 0 : id % 2 ? 6 : -6;
   const rotate = useTransform(rotateBase, (r) => `${r + offset}deg`);
 
-  const handleDragEnd = () => {
+  const handleDragEnd = async () => {
     const swipeDistance = x.get();
-
-    if (swipeDistance > 100) onMatch?.(id);
-
     if (Math.abs(swipeDistance) > 100) {
       const next = cards.filter((card) => card.id !== id);
       setCards(next);
+      await updateSwipedMaids(id);
+      if (swipeDistance > 100) {
+        await createChatWithMaid(id);
+      }
     }
   };
 
@@ -137,7 +162,6 @@ function Card({
           padding: "20px",
           backdropFilter: "blur(4px)",
           width: "100%",
-          boxSizing: "border-box",
           position: "absolute",
           bottom: 0,
           left: 0,
@@ -147,15 +171,22 @@ function Card({
         <p>${pay}/hr — {range} mi range</p>
         <p>{languages}</p>
         {distance && <p>📍 {distance} mi from you</p>}
+        {bio && (
+          <p style={{ fontSize: "0.85rem", marginTop: "0.5rem", lineHeight: 1.4 }}>
+             {bio.length > 120 ? bio.slice(0, 120) + '…' : bio}
+          </p>
+        )}
       </div>
     </motion.div>
   );
 }
 
 function TinderCards() {
+  const [allCards, setAllCards] = useState([]);
   const [cards, setCards] = useState([]);
   const [topCardId, setTopCardId] = useState(null);
   const [swipedCards, setSwipedCards] = useState([]);
+  const [swipeHistory, setSwipeHistory] = useState([]);
   const [favoritedMaids, setFavoritedMaids] = useState([]);
   const [profileOpen, setProfileOpen] = useState(false);
   const [filters, setFilters] = useState({
@@ -167,49 +198,104 @@ function TinderCards() {
   });
 
   useEffect(() => {
-    const fetchMaids = async () => {
-      try {
-        const profileSnapshot = await getDocs(collection(db, "profiles"));
-        const maidProfiles = [];
-
-        for (const docSnap of profileSnapshot.docs) {
-          const profileData = docSnap.data();
-          const uid = docSnap.id;
-
-          const userDoc = await getDoc(doc(db, "users", uid));
-          const userData = userDoc.exists() ? userDoc.data() : null;
-
-          const isMaid = userData?.role === "maid";
-          const hasPhotos = Array.isArray(profileData.photos) && profileData.photos.length > 0;
-
-          if (isMaid && hasPhotos) {
-            maidProfiles.push({
-              id: uid,
-              name: profileData.name || userData.name || "Unnamed",
-              photo: profileData.photos[0],
-              pay: profileData.pay || 0,
-              range: profileData.range || 0,
-              specs: profileData.specs || {},
-              languages: profileData.languages || "",
-              location: profileData.location || null,
-            });
-          }
-        }
-
-        setCards(maidProfiles);
-      } catch (err) {
-        console.error("Error fetching maids:", err);
+    window.scrollTo(0, 0);
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        fetchMaidsAndSwipes(user);
       }
-    };
-
-    fetchMaids();
+    });
+    return () => unsubscribe();
   }, []);
 
-  useEffect(() => {
-    if (cards.length > 0) {
-      setTopCardId(cards[cards.length - 1].id);
+  const fetchMaidsAndSwipes = async (currentUser) => {
+    let swiped = [];
+
+    try {
+      const swipeDoc = await getDoc(doc(db, "swipes", currentUser.uid));
+      if (swipeDoc.exists()) {
+        swiped = swipeDoc.data().swiped || [];
+      }
+    } catch (err) {
+      console.error("Error fetching swipes:", err);
     }
-  }, [cards]);
+
+    try {
+      const profileSnapshot = await getDocs(collection(db, "profiles"));
+      const maidProfiles = [];
+
+      for (const docSnap of profileSnapshot.docs) {
+        const profileData = docSnap.data();
+        const uid = docSnap.id;
+
+        const userDoc = await getDoc(doc(db, "users", uid));
+        const userData = userDoc.exists() ? userDoc.data() : null;
+
+        const isMaid = userData?.role === "maid";
+        const hasPhotos = Array.isArray(profileData.photos) && profileData.photos.length > 0;
+
+        if (isMaid && hasPhotos && !swiped.includes(uid)) {
+          maidProfiles.push({
+            id: uid,
+            name: profileData.name || userData.name || "Unnamed",
+            photo: profileData.photos[0],
+            pay: profileData.pay || 0,
+            range: profileData.range || 0,
+            specs: profileData.specs || {},
+            languages: profileData.languages || "",
+            location: profileData.location || null,
+            bio: profileData.bio || "", // ✅ Include bio
+          });
+        }
+      }
+
+      setAllCards(maidProfiles);
+      setSwipedCards(swiped);
+    } catch (err) {
+      console.error("Error fetching maids:", err);
+    }
+  };
+
+  useEffect(() => {
+    const filtered = allCards.filter((maid) => {
+      const specMatch = Object.entries(filters.specs).every(
+        ([key, val]) => (val ? maid.specs?.[key] : true)
+      );
+
+      const langMatch =
+        !filters.languages ||
+        maid.languages?.toLowerCase().includes(filters.languages.toLowerCase());
+
+      const payMatch =
+        maid.pay >= filters.minPay && maid.pay <= filters.maxPay;
+
+      const distanceMatch =
+        !filters.location || !maid.location
+          ? true
+          : getDistanceInMiles(
+              filters.location.lat,
+              filters.location.lng,
+              maid.location.lat,
+              maid.location.lng
+            ) <= filters.range;
+
+      return specMatch && langMatch && payMatch && distanceMatch;
+    });
+
+    setCards(filtered);
+    setTopCardId(filtered[filtered.length - 1]?.id || null);
+  }, [filters, allCards]);
+
+  const updateSwipedMaids = async (maidId) => {
+    const user = getAuth().currentUser;
+    if (!user) return;
+
+    const updatedSwipes = [...new Set([...swipedCards, maidId])];
+    setSwipedCards(updatedSwipes);
+    setSwipeHistory((prev) => [...prev, maidId]);
+    localStorage.setItem("swipedMaidIds", JSON.stringify(updatedSwipes));
+    await saveSwipeToFirestore(user.uid, maidId);
+  };
 
   const handleFavorite = async (maidId) => {
     const user = getAuth().currentUser;
@@ -226,52 +312,75 @@ function TinderCards() {
   const handleLike = async () => {
     if (!topCardId) return;
     await createChatWithMaid(topCardId);
+    await updateSwipedMaids(topCardId);
     const next = cards.filter((c) => c.id !== topCardId);
     setCards(next);
     setTopCardId(next[next.length - 1]?.id || null);
   };
 
-  const handleDislike = () => {
+  const handleDislike = async () => {
     if (!topCardId) return;
-    const swiped = cards.find((c) => c.id === topCardId);
+    await updateSwipedMaids(topCardId);
     const next = cards.filter((c) => c.id !== topCardId);
-    setSwipedCards((prev) => [...prev, swiped]);
     setCards(next);
     setTopCardId(next[next.length - 1]?.id || null);
   };
 
-  const handleRewind = () => {
-    if (swipedCards.length === 0) return;
-    const last = swipedCards[swipedCards.length - 1];
-    const remaining = swipedCards.slice(0, -1);
-    setCards((prev) => [...prev, last]);
-    setSwipedCards(remaining);
-    setTopCardId(last.id);
+  const handleRewind = async () => {
+    if (swipeHistory.length === 0) return;
+    const user = getAuth().currentUser;
+    if (!user) return;
+
+    const lastSwipedId = swipeHistory[swipeHistory.length - 1];
+
+    try {
+      await removeSwipeFromFirestore(user.uid, lastSwipedId);
+      const updatedSwipes = swipedCards.filter((id) => id !== lastSwipedId);
+      setSwipedCards(updatedSwipes);
+      setSwipeHistory((prev) => prev.slice(0, -1));
+      localStorage.setItem("swipedMaidIds", JSON.stringify(updatedSwipes));
+
+      const maidProfileDoc = await getDoc(doc(db, "profiles", lastSwipedId));
+      const userDoc = await getDoc(doc(db, "users", lastSwipedId));
+
+      if (maidProfileDoc.exists() && userDoc.exists()) {
+        const profileData = maidProfileDoc.data();
+        const userData = userDoc.data();
+
+        const reAdded = {
+          id: lastSwipedId,
+          name: profileData.name || userData.name || "Unnamed",
+          photo: profileData.photos[0],
+          pay: profileData.pay || 0,
+          range: profileData.range || 0,
+          specs: profileData.specs || {},
+          languages: profileData.languages || "",
+          location: profileData.location || null,
+          bio: profileData.bio || "",
+        };
+
+        setAllCards((prev) => [...prev, reAdded]);
+        setTopCardId(lastSwipedId);
+      }
+    } catch (err) {
+      console.error("Error rewinding swipe:", err);
+    }
   };
 
-  const filteredCards = cards.filter((maid) => {
-    const specMatch = Object.entries(filters.specs).every(
-      ([key, val]) => (val ? maid.specs?.[key] : true)
-    );
+  const resetSwipes = async () => {
+    const user = getAuth().currentUser;
+    if (!user) return;
 
-    const langMatch =
-      !filters.languages ||
-      maid.languages?.toLowerCase().includes(filters.languages.toLowerCase());
-
-    const payMatch = maid.pay >= filters.pay;
-
-    const distanceMatch =
-      filters.location && maid.location
-        ? getDistanceInMiles(
-            filters.location.lat,
-            filters.location.lng,
-            maid.location.lat,
-            maid.location.lng
-          ) <= filters.range
-        : true;
-
-    return specMatch && langMatch && payMatch && distanceMatch;
-  });
+    try {
+      await setDoc(doc(db, "swipes", user.uid), { swiped: [] });
+      localStorage.removeItem("swipedMaidIds");
+      setSwipedCards([]);
+      setSwipeHistory([]);
+      window.location.reload();
+    } catch (err) {
+      console.error("Failed to reset swipes:", err);
+    }
+  };
 
   return (
     <>
@@ -301,15 +410,15 @@ function TinderCards() {
 
       <div className={`main-content ${profileOpen ? "shifted" : ""}`}>
         <div className="tinderCards__cardContainer">
-          {filteredCards.length > 0 ? (
-            filteredCards.map((card) => (
+          {cards.length > 0 ? (
+            cards.map((card) => (
               <Card
                 key={card.id}
                 {...card}
                 setCards={setCards}
-                cards={filteredCards}
+                cards={cards}
                 userLocation={filters.location}
-                onMatch={createChatWithMaid}
+                updateSwipedMaids={updateSwipedMaids}
               />
             ))
           ) : (
@@ -325,6 +434,12 @@ function TinderCards() {
         <button onClick={handleDislike}>❌</button>
         <button onClick={() => handleFavorite(topCardId)}>⭐</button>
         <button onClick={handleLike}>❤️</button>
+      </div>
+
+      <div style={{ textAlign: "center", marginTop: "1rem" }}>
+        <button onClick={resetSwipes} style={{ padding: "0.5rem 1rem", background: "#ccc", borderRadius: "8px" }}>
+          Reset Swipes
+        </button>
       </div>
     </>
   );
