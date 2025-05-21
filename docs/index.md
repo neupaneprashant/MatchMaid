@@ -11,6 +11,8 @@ Welcome to the official documentation for **MatchMaid**, a Tinder-style maid hir
   Summary of features, tech stack, Firebase configuration, and app flow.
 - [Setup Instructions](setup.md)  
   Installation, Firebase setup, and local development.
+- [Database Schema](database-schema.md)  
+  Firestore collections for users, profiles, reviews, and transactions.
 
 ### 👥 User Roles & Routing
 - [User Roles](roles.md)  
@@ -31,15 +33,15 @@ Welcome to the official documentation for **MatchMaid**, a Tinder-style maid hir
   Line chart visualization of monthly earnings.
 
 ### 💳 Payments & Reviews
-- [PayPal Integration](paypal.md)  
-  PayPal button logic, Firestore logging, and secure checkout.
-- [MyReviews Component](my-reviews.md)  
+- [PayPalButton](paypalbutton.md)  
+  PayPal integration, Firestore logging, and secure checkout.
+- [MyReviews Component](myreviews.md)  
   View, edit, and delete reviews submitted by users.
 
 ### 🧼 Maid Features
-- [Maid Portal](maid-portal.md)  
+- [Maid Portal](maidportal.md)  
   Dashboard for bookings, earnings, availability, and chat.
-- [Maid Rating Analytics](maid-rating-analytics.md)  
+- [Maid Rating Analytics](maidratinganalytics.md)  
   Average rating and star breakdown with visual UI.
 
 ---
