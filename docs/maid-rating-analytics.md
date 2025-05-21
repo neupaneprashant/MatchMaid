@@ -1,0 +1,3 @@
+# ⭐ MaidRatingAnalyticsComponent
+
+Displays average rating and star-wise breakdown for a maid's reviews...

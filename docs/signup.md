@@ -1,0 +1,3 @@
+# 🔐 SignUp Component
+
+Handles user registration, login, and social authentication (Google, Facebook) for MatchMaid...

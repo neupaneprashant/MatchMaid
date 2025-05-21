@@ -1,0 +1,3 @@
+# 🧼 MaidPortal Component
+
+Centralized dashboard for maids to view earnings, bookings, and navigate other tools...

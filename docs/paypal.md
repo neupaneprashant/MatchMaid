@@ -1,0 +1,3 @@
+# 💳 PayPal Integration
+
+Integrates PayPal checkout into MatchMaid for user payments. Logs successful transactions in Firestore...
