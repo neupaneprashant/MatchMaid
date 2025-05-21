@@ -21,7 +21,7 @@ Welcome to the official documentation for **MatchMaid**, a Tinder-style maid hir
   All frontend paths and access controls.
 
 ### 🔐 Authentication & Landing
-- [SignUp Component](signup.md)  
+- [Signup Component](signup.md)  
   Firebase Auth, role-based routing, and social login.
 - [Landing Page](landing-page.md)  
   Homepage layout, language toggle, service dropdown, and login modal.
@@ -33,15 +33,15 @@ Welcome to the official documentation for **MatchMaid**, a Tinder-style maid hir
   Line chart visualization of monthly earnings.
 
 ### 💳 Payments & Reviews
-- [PayPalButton](paypalbutton.md)  
+- [PayPalButton](paypal.md)  
   PayPal integration, Firestore logging, and secure checkout.
-- [MyReviews Component](myreviews.md)  
+- [MyReviews Component](my-reviews.md)  
   View, edit, and delete reviews submitted by users.
 
 ### 🧼 Maid Features
-- [Maid Portal](maidportal.md)  
+- [Maid Portal](maid-portal.md)  
   Dashboard for bookings, earnings, availability, and chat.
-- [Maid Rating Analytics](maidratinganalytics.md)  
+- [Maid Rating Analytics](mating-rating-analytics.md)  
   Average rating and star breakdown with visual UI.
 
 ---
